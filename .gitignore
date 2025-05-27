@@ -1,0 +1,8 @@
+# Visual Studio adds
+*.obj
+
+# Mac
+*.o
+
+# Compiled Python
+*.pyc

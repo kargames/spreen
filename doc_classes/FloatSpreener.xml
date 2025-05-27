@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FloatSpreener" inherits="Spreener" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="set_damping_ratio">
+			<return type="FloatSpreener" />
+			<param index="0" name="damping_ratio" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="set_halflife">
+			<return type="FloatSpreener" />
+			<param index="0" name="halflife" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="update_goal">
+			<return type="FloatSpreener" />
+			<param index="0" name="goal" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="damping_ratio" type="float" setter="set_damping_ratio" getter="get_damping_ratio" default="0.5">
+		</member>
+		<member name="halflife" type="float" setter="set_halflife" getter="get_halflife" default="0.5">
+		</member>
+	</members>
+</class>

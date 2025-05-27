@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Spreen" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="bind_node">
+			<return type="Spreen" />
+			<param index="0" name="node" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="custom_step">
+			<return type="bool" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_total_elapsed_time" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_finishable">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_running">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_valid">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="kill">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="pause">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="play">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="set_finishable">
+			<return type="Spreen" />
+			<param index="0" name="finishable" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_pause_mode">
+			<return type="Spreen" />
+			<param index="0" name="mode" type="int" enum="Spreen.SpreenPauseMode" />
+			<description>
+			</description>
+		</method>
+		<method name="set_process_mode">
+			<return type="Spreen" />
+			<param index="0" name="mode" type="int" enum="Spreen.SpreenProcessMode" />
+			<description>
+			</description>
+		</method>
+		<method name="spreen_basis">
+			<return type="BasisSpreener" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="property" type="NodePath" />
+			<param index="2" name="goal" type="Basis" />
+			<param index="3" name="damping_ratio" type="float" />
+			<param index="4" name="halflife" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="spreen_float">
+			<return type="FloatSpreener" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="property" type="NodePath" />
+			<param index="2" name="goal" type="float" />
+			<param index="3" name="damping_ratio" type="float" />
+			<param index="4" name="halflife" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="spreen_transform_2d">
+			<return type="Transform2DSpreener" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="property" type="NodePath" />
+			<param index="2" name="goal" type="Transform2D" />
+			<param index="3" name="damping_ratio" type="float" />
+			<param index="4" name="halflife" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="spreen_transform_3d">
+			<return type="Transform3DSpreener" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="property" type="NodePath" />
+			<param index="2" name="goal" type="Transform3D" />
+			<param index="3" name="damping_ratio" type="float" />
+			<param index="4" name="halflife" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="spreen_vector2">
+			<return type="Vector2Spreener" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="property" type="NodePath" />
+			<param index="2" name="goal" type="Vector2" />
+			<param index="3" name="damping_ratio" type="float" />
+			<param index="4" name="halflife" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="spreen_vector3">
+			<return type="Vector3Spreener" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="property" type="NodePath" />
+			<param index="2" name="goal" type="Vector3" />
+			<param index="3" name="damping_ratio" type="float" />
+			<param index="4" name="halflife" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="finished">
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="SPREEN_PROCESS_PHYSICS" value="0" enum="SpreenProcessMode">
+		</constant>
+		<constant name="SPREEN_PROCESS_IDLE" value="1" enum="SpreenProcessMode">
+		</constant>
+		<constant name="SPREEN_PAUSE_BOUND" value="0" enum="SpreenPauseMode">
+		</constant>
+		<constant name="SPREEN_PAUSE_STOP" value="1" enum="SpreenPauseMode">
+		</constant>
+		<constant name="SPREEN_PAUSE_PROCESS" value="2" enum="SpreenPauseMode">
+		</constant>
+	</constants>
+</class>
