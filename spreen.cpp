@@ -27,15 +27,15 @@
 
 #include "spreen.h"
 
-#include "scene/main/node.h"
 #include "basis_spreener.h"
 #include "float_spreener.h"
+#include "scene/main/node.h"
 #include "transform_2d_spreener.h"
 #include "transform_3d_spreener.h"
 #include "vector2_spreener.h"
 #include "vector3_spreener.h"
 
-#define CHECK_VALID()                                                                                      \
+#define CHECK_VALID()                                                                                        \
 	ERR_FAIL_COND_V_MSG(!valid, nullptr, "Spreen invalid. Either finished or created outside spreen tree."); \
 	ERR_FAIL_COND_V_MSG(started, nullptr, "Can't append to a Spreen that has started. Use stop() first.");
 
@@ -47,6 +47,10 @@ real_t Spreener::get_halflife() const {
 	return halflife;
 }
 
+bool Spreener::is_finished() const {
+	return finished;
+}
+
 void Spreener::set_spreen(const Ref<Spreen> &p_spreen) {
 	spreen_id = p_spreen->get_instance_id();
 }
@@ -56,39 +60,39 @@ Ref<Spreen> Spreener::_get_spreen() {
 }
 
 void Spreener::_finish() {
-  finished = true;
-  emit_signal(SceneStringName(finished));
+	finished = true;
+	emit_signal(SceneStringName(finished));
 }
 
 void Spreener::_bind_methods() {
-  ClassDB::bind_method(D_METHOD("get_damping_ratio"), &BasisSpreener::get_damping_ratio);
-	ClassDB::bind_method(D_METHOD("get_halflife"), &BasisSpreener::get_halflife);
+	ClassDB::bind_method(D_METHOD("get_damping_ratio"), &Spreener::get_damping_ratio);
+	ClassDB::bind_method(D_METHOD("get_halflife"), &Spreener::get_halflife);
+	ClassDB::bind_method(D_METHOD("is_finished"), &Spreener::is_finished);
 
 	ADD_SIGNAL(MethodInfo("finished"));
 
-	ADD_PROPERTY_DEFAULT("damping_ratio", 0.5);
+	ADD_PROPERTY_DEFAULT("damping_ratio", 1.0);
 	ADD_PROPERTY_DEFAULT("halflife", 0.5);
 }
 
 void Spreener::update_spring(real_t &x, real_t &v, const real_t x_goal, real_t v_goal, double delta) {
-  real_t g = x_goal;
+	real_t g = x_goal;
 	real_t q = v_goal;
 	real_t d = halflife_to_damping(halflife);
 	real_t s = damping_ratio_to_stiffness(damping_ratio, d);
 	real_t c = g + (d * q) / (s + CMP_EPSILON);
 	real_t y = d / 2.0f;
 
-	if (Math::absf(1. - damping_ratio) < CMP_EPSILON) // Critically Damped
+	if (Math::is_zero_approx(1. - damping_ratio)) // Critically Damped
 	{
 		real_t j0 = x - c;
 		real_t j1 = v + j0 * y;
 
 		real_t eydt = Math::exp(-y * delta);
 
-		x = j0 * eydt + delta * j1 * eydt + c;
-		v = -y * j0 * eydt - y * delta * j1 * eydt + j1 * eydt;
-	}
-	else if (damping_ratio < 1.) // Under Damped
+		x = eydt * (j0 + delta * j1) + c;
+		v = eydt * (v - delta * j1 * y);
+	} else if (damping_ratio < 1.) // Under Damped
 	{
 		real_t w = Math::sqrt(s - (d * d) / 4.0f);
 		real_t j = Math::sqrt(Math::pow(v + y * (x - c), (real_t)2.0f) / (w * w + CMP_EPSILON) + Math::pow(x - c, (real_t)2.0f));
@@ -100,8 +104,7 @@ void Spreener::update_spring(real_t &x, real_t &v, const real_t x_goal, real_t v
 
 		x = j * eydt * Math::cos(w * delta + p) + c;
 		v = -y * j * eydt * Math::cos(w * delta + p) - w * j * eydt * Math::sin(w * delta + p);
-	}
-	else if (damping_ratio > 1.) // Over Damped
+	} else if (damping_ratio > 1.) // Over Damped
 	{
 		real_t y0 = (d + Math::sqrt(d * d - 4 * s)) / 2.0f;
 		real_t y1 = (d - Math::sqrt(d * d - 4 * s)) / 2.0f;
@@ -118,61 +121,59 @@ void Spreener::update_spring(real_t &x, real_t &v, const real_t x_goal, real_t v
 
 void Spreener::update_spring(Vector2 &p, Vector2 &v, const Vector2 &p_goal, const Vector2 &v_goal, double delta) {
 	real_t x = p.x;
-  real_t y = p.y;
-  real_t dx = v.x; 
-  real_t dy = v.y; 
+	real_t y = p.y;
+	real_t dx = v.x;
+	real_t dy = v.y;
 
-  update_spring(x, dx, p_goal.x, 0.0f, delta);
-  update_spring(y, dy, p_goal.y, 0.0f, delta);
+	update_spring(x, dx, p_goal.x, 0.0f, delta);
+	update_spring(y, dy, p_goal.y, 0.0f, delta);
 
-  p = Vector2(x, y);
-  v = Vector2(dx, dy);
+	p = Vector2(x, y);
+	v = Vector2(dx, dy);
 }
 
 void Spreener::update_spring(Vector3 &p, Vector3 &v, const Vector3 &p_goal, const Vector3 &v_goal, double delta) {
 	real_t x = p.x;
-  real_t y = p.y;
-  real_t z = p.z;
-  real_t dx = v.x; 
-  real_t dy = v.y; 
-  real_t dz = v.z; 
+	real_t y = p.y;
+	real_t z = p.z;
+	real_t dx = v.x;
+	real_t dy = v.y;
+	real_t dz = v.z;
 
-  update_spring(x, dx, p_goal.x, 0.0f, delta);
-  update_spring(y, dy, p_goal.y, 0.0f, delta);
-  update_spring(z, dz, p_goal.z, 0.0f, delta);
+	update_spring(x, dx, p_goal.x, 0.0f, delta);
+	update_spring(y, dy, p_goal.y, 0.0f, delta);
+	update_spring(z, dz, p_goal.z, 0.0f, delta);
 
-  p = Vector3(x, y, z);
-  v = Vector3(dx, dy, dz);
+	p = Vector3(x, y, z);
+	v = Vector3(dx, dy, dz);
 }
 
 void Spreener::update_spring(Quaternion &q, Vector3 &v, const Quaternion &q_goal, double delta) {
-  // g == c == q_goal, assming v_goal = 0
-  Vector3 x_minus_c = quat_to_scaled_angle_axis(quat_abs(q * q_goal.inverse()));
-  real_t d = halflife_to_damping(halflife);
+	// g == c == q_goal, assming v_goal = 0
+	Vector3 x_minus_c = quat_to_scaled_angle_axis(quat_abs(q * q_goal.inverse()));
+	real_t d = halflife_to_damping(halflife);
 	real_t s = damping_ratio_to_stiffness(damping_ratio, d);
 	real_t y = d / 2.0;
 
-  if (Math::absf(1. - damping_ratio) < CMP_EPSILON) // Critically Damped
-  {
-    Vector3 j0 = x_minus_c;
+	if (Math::absf(1. - damping_ratio) < CMP_EPSILON) // Critically Damped
+	{
+		Vector3 j0 = x_minus_c;
 		Vector3 j1 = v + j0 * y;
 
 		real_t eydt = Math::exp(-y * delta);
 
 		q = quat_from_scaled_angle_axis(eydt * (j0 + j1 * delta)) * q_goal;
 		v = eydt * (v - j1 * y * delta);
-  }
-  else if (damping_ratio < 1.) // Under Damped
+	} else if (damping_ratio < 1.) // Under Damped
 	{
 		real_t w = Math::sqrt(s - (d * d) / 4.0);
 		real_t eydt = Math::exp(-y * delta);
 
 		Vector3 j, p, cos_pw, sin_pw;
-		for (int i = 0; i < 3; i++)	
-		{
+		for (int i = 0; i < 3; i++) {
 			j[i] = Math::sqrt(Math::pow(v[i] + y * x_minus_c[i], (real_t)2.0f) / (w * w + CMP_EPSILON) + Math::pow(x_minus_c[i], (real_t)2.0f));
 			p[i] = Math::atan((v[i] + x_minus_c[i] * y) / (-x_minus_c[i] * w + CMP_EPSILON));
-			
+
 			j[i] = x_minus_c[i] > 0.0 ? j[i] : -j[i];
 			cos_pw[i] = Math::cos(p[i] + w * delta);
 			sin_pw[i] = Math::sin(p[i] + w * delta);
@@ -180,8 +181,7 @@ void Spreener::update_spring(Quaternion &q, Vector3 &v, const Quaternion &q_goal
 
 		q = quat_from_scaled_angle_axis(j * eydt * cos_pw) * q_goal;
 		v = -y * j * eydt * cos_pw - w * j * eydt * sin_pw;
-	}
-	else if (damping_ratio > 1.) // Over Damped
+	} else if (damping_ratio > 1.) // Over Damped
 	{
 		real_t y0 = (d + Math::sqrt(d * d - 4 * s)) / 2.0;
 		real_t y1 = (d - Math::sqrt(d * d - 4 * s)) / 2.0;
@@ -217,10 +217,10 @@ void Spreen::_stop_internal(bool p_reset) {
 }
 
 Ref<FloatSpreener> Spreen::spreen_float(const Object *p_target, const NodePath &p_property, real_t p_goal, real_t p_damping_ratio, real_t p_halflife) {
-  ERR_FAIL_NULL_V(p_target, nullptr);
-  CHECK_VALID();
+	ERR_FAIL_NULL_V(p_target, nullptr);
+	CHECK_VALID();
 
-  Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
 	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
@@ -229,18 +229,18 @@ Ref<FloatSpreener> Spreen::spreen_float(const Object *p_target, const NodePath &
 	const Variant &prop_value = p_target->get_indexed(property_subnames);
 #endif
 
-  ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::FLOAT, nullptr, "The spreened property does not match the required type.");
+	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::FLOAT, nullptr, "The spreened property does not match the required type.");
 
-  Ref<FloatSpreener> spreener = memnew(FloatSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
-  append(spreener);
-  return spreener;
+	Ref<FloatSpreener> spreener = memnew(FloatSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	append(spreener);
+	return spreener;
 }
 
 Ref<Vector2Spreener> Spreen::spreen_vector2(const Object *p_target, const NodePath &p_property, const Vector2 &p_goal, real_t p_damping_ratio, real_t p_halflife) {
-  ERR_FAIL_NULL_V(p_target, nullptr);
+	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
 
-  Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
 	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
@@ -249,18 +249,18 @@ Ref<Vector2Spreener> Spreen::spreen_vector2(const Object *p_target, const NodePa
 	const Variant &prop_value = p_target->get_indexed(property_subnames);
 #endif
 
-  ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::VECTOR2, nullptr, "The spreened property does not match the required type.");
+	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::VECTOR2, nullptr, "The spreened property does not match the required type.");
 
-  Ref<Vector2Spreener> spreener = memnew(Vector2Spreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
-  append(spreener);
-  return spreener;
+	Ref<Vector2Spreener> spreener = memnew(Vector2Spreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	append(spreener);
+	return spreener;
 }
 
 Ref<Transform2DSpreener> Spreen::spreen_transform_2d(const Object *p_target, const NodePath &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife) {
-  ERR_FAIL_NULL_V(p_target, nullptr);
+	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
 
-  Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
 	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
@@ -269,18 +269,18 @@ Ref<Transform2DSpreener> Spreen::spreen_transform_2d(const Object *p_target, con
 	const Variant &prop_value = p_target->get_indexed(property_subnames);
 #endif
 
-  ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::TRANSFORM2D, nullptr, "The spreened property does not match the required type.");
+	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::TRANSFORM2D, nullptr, "The spreened property does not match the required type.");
 
-  Ref<Transform2DSpreener> spreener = memnew(Transform2DSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
-  append(spreener);
-  return spreener;
+	Ref<Transform2DSpreener> spreener = memnew(Transform2DSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	append(spreener);
+	return spreener;
 }
 
 Ref<Vector3Spreener> Spreen::spreen_vector3(const Object *p_target, const NodePath &p_property, const Vector3 &p_goal, real_t p_damping_ratio, real_t p_halflife) {
-  ERR_FAIL_NULL_V(p_target, nullptr);
+	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
 
-  Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
 	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
@@ -289,18 +289,18 @@ Ref<Vector3Spreener> Spreen::spreen_vector3(const Object *p_target, const NodePa
 	const Variant &prop_value = p_target->get_indexed(property_subnames);
 #endif
 
-  ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::VECTOR3, nullptr, "The spreened property does not match the required type.");
+	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::VECTOR3, nullptr, "The spreened property does not match the required type.");
 
-  Ref<Vector3Spreener> spreener = memnew(Vector3Spreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
-  append(spreener);
-  return spreener;
+	Ref<Vector3Spreener> spreener = memnew(Vector3Spreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	append(spreener);
+	return spreener;
 }
 
 Ref<BasisSpreener> Spreen::spreen_basis(const Object *p_target, const NodePath &p_property, const Basis &p_goal, real_t p_damping_ratio, real_t p_halflife) {
-  ERR_FAIL_NULL_V(p_target, nullptr);
+	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
 
-  Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
 	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
@@ -309,18 +309,18 @@ Ref<BasisSpreener> Spreen::spreen_basis(const Object *p_target, const NodePath &
 	const Variant &prop_value = p_target->get_indexed(property_subnames);
 #endif
 
-  ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::BASIS, nullptr, "The spreened property does not match the required type.");
+	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::BASIS, nullptr, "The spreened property does not match the required type.");
 
-  Ref<BasisSpreener> spreener = memnew(BasisSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
-  append(spreener);
-  return spreener;
+	Ref<BasisSpreener> spreener = memnew(BasisSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	append(spreener);
+	return spreener;
 }
 
 Ref<Transform3DSpreener> Spreen::spreen_transform_3d(const Object *p_target, const NodePath &p_property, const Transform3D &p_goal, real_t p_damping_ratio, real_t p_halflife) {
-  ERR_FAIL_NULL_V(p_target, nullptr);
+	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
 
-  Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
 	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
@@ -329,16 +329,16 @@ Ref<Transform3DSpreener> Spreen::spreen_transform_3d(const Object *p_target, con
 	const Variant &prop_value = p_target->get_indexed(property_subnames);
 #endif
 
-  ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::TRANSFORM3D, nullptr, "The spreened property does not match the required type.");
+	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::TRANSFORM3D, nullptr, "The spreened property does not match the required type.");
 
-  Ref<Transform3DSpreener> spreener = memnew(Transform3DSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
-  append(spreener);
-  return spreener;
+	Ref<Transform3DSpreener> spreener = memnew(Transform3DSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	append(spreener);
+	return spreener;
 }
 
 void Spreen::append(Ref<Spreener> p_spreener) {
-  p_spreener->set_spreen(this);
-  spreeners.push_back(p_spreener);
+	p_spreener->set_spreen(this);
+	spreeners.push_back(p_spreener);
 }
 
 void Spreen::stop() {
@@ -358,10 +358,11 @@ void Spreen::play() {
 void Spreen::kill() {
 	running = false; // For the sake of is_running().
 	dead = true;
+	valid = false;
 }
 
 bool Spreen::is_finishable() {
-  return finishable;
+	return finishable;
 }
 
 bool Spreen::is_running() {
@@ -370,6 +371,23 @@ bool Spreen::is_running() {
 
 bool Spreen::is_valid() {
 	return valid;
+}
+
+bool Spreen::is_dead() const {
+	return dead;
+}
+
+bool Spreen::is_finished() const {
+	if (spreeners.is_empty()) {
+		return false;
+	}
+
+	for (const Ref<Spreener> &spreener : spreeners) {
+		if (!spreener->is_finished()) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void Spreen::clear() {
@@ -404,8 +422,8 @@ Spreen::SpreenPauseMode Spreen::get_pause_mode() {
 }
 
 Ref<Spreen> Spreen::set_finishable(bool p_finishable) {
-  finishable = p_finishable;
-  return this;
+	finishable = p_finishable;
+	return this;
 }
 
 bool Spreen::custom_step(double p_delta) {
@@ -417,7 +435,7 @@ bool Spreen::custom_step(double p_delta) {
 }
 
 bool Spreen::step(double p_delta) {
-  if (dead) {
+	if (dead) {
 		return false;
 	}
 
@@ -432,11 +450,11 @@ bool Spreen::step(double p_delta) {
 		}
 	}
 
-  if (!running) {
+	if (!running) {
 		return true;
 	}
 
-  if (!started) {
+	if (!started) {
 		if (spreeners.is_empty()) {
 			String tween_id;
 			Node *node = get_bound_node();
@@ -452,20 +470,20 @@ bool Spreen::step(double p_delta) {
 		started = true;
 	}
 
-  total_time += p_delta;
+	total_time += p_delta;
 
-  bool still_active = false;
-  for (Ref<Spreener> &spreener : spreeners) {
+	bool still_active = false;
+	for (Ref<Spreener> &spreener : spreeners) {
 		still_active = spreener->step(p_delta) || still_active;
 	}
 
-  if (!still_active && finishable) {
-    running = false;
-    dead = true;
-    emit_signal(SceneStringName(finished));
-  }
+	if (!still_active && finishable) {
+		running = false;
+		dead = true;
+		emit_signal(SceneStringName(finished));
+	}
 
-  return true;
+	return true;
 }
 
 bool Spreen::can_process(bool p_tree_paused) const {
@@ -501,32 +519,34 @@ String Spreen::to_string() {
 }
 
 void Spreen::_bind_methods() {
-  ClassDB::bind_method(D_METHOD("spreen_float", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_float);
-  ClassDB::bind_method(D_METHOD("spreen_vector2", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_vector2);
-  ClassDB::bind_method(D_METHOD("spreen_transform_2d", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_transform_2d);
-  ClassDB::bind_method(D_METHOD("spreen_vector3", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_vector3);
-  ClassDB::bind_method(D_METHOD("spreen_basis", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_basis);
-  ClassDB::bind_method(D_METHOD("spreen_transform_3d", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_transform_3d);
+	ClassDB::bind_method(D_METHOD("spreen_float", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_float);
+	ClassDB::bind_method(D_METHOD("spreen_vector2", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_vector2);
+	ClassDB::bind_method(D_METHOD("spreen_transform_2d", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_transform_2d);
+	ClassDB::bind_method(D_METHOD("spreen_vector3", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_vector3);
+	ClassDB::bind_method(D_METHOD("spreen_basis", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_basis);
+	ClassDB::bind_method(D_METHOD("spreen_transform_3d", "object", "property", "goal", "damping_ratio", "halflife"), &Spreen::spreen_transform_3d);
 
-  ClassDB::bind_method(D_METHOD("custom_step", "delta"), &Spreen::custom_step);
+	ClassDB::bind_method(D_METHOD("custom_step", "delta"), &Spreen::custom_step);
 	ClassDB::bind_method(D_METHOD("stop"), &Spreen::stop);
 	ClassDB::bind_method(D_METHOD("pause"), &Spreen::pause);
 	ClassDB::bind_method(D_METHOD("play"), &Spreen::play);
 	ClassDB::bind_method(D_METHOD("kill"), &Spreen::kill);
 	ClassDB::bind_method(D_METHOD("get_total_elapsed_time"), &Spreen::get_total_time);
 
-
 	ClassDB::bind_method(D_METHOD("is_finishable"), &Spreen::is_finishable);
 	ClassDB::bind_method(D_METHOD("is_running"), &Spreen::is_running);
 	ClassDB::bind_method(D_METHOD("is_valid"), &Spreen::is_valid);
+	ClassDB::bind_method(D_METHOD("is_dead"), &Spreen::is_dead);
+	ClassDB::bind_method(D_METHOD("is_finished"), &Spreen::is_finished);
+	ClassDB::bind_method(D_METHOD("get_bound_node"), &Spreen::get_bound_node);
 	ClassDB::bind_method(D_METHOD("bind_node", "node"), &Spreen::bind_node);
 	ClassDB::bind_method(D_METHOD("set_process_mode", "mode"), &Spreen::set_process_mode);
 	ClassDB::bind_method(D_METHOD("set_pause_mode", "mode"), &Spreen::set_pause_mode);
 	ClassDB::bind_method(D_METHOD("set_finishable", "finishable"), &Spreen::set_finishable);
 
-  ADD_SIGNAL(MethodInfo("finished"));
+	ADD_SIGNAL(MethodInfo("finished"));
 
-  BIND_ENUM_CONSTANT(SPREEN_PROCESS_PHYSICS);
+	BIND_ENUM_CONSTANT(SPREEN_PROCESS_PHYSICS);
 	BIND_ENUM_CONSTANT(SPREEN_PROCESS_IDLE);
 
 	BIND_ENUM_CONSTANT(SPREEN_PAUSE_BOUND);

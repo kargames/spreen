@@ -31,26 +31,26 @@
 #include "spreen.h"
 
 class Transform3DSpreener : public Spreener {
-  GDCLASS(Transform3DSpreener, Spreener);
+	GDCLASS(Transform3DSpreener, Spreener);
 
 public:
-  void start() override;
-  bool step(double &r_delta) override;
-  Ref<Transform3DSpreener> update_goal(const Transform3D &p_goal);
-  Ref<Transform3DSpreener> set_damping_ratio(real_t p_damping_ratio);
-  Ref<Transform3DSpreener> set_halflife(real_t p_halflife);
+	void start() override;
+	bool step(double &r_delta) override;
+	Ref<Transform3DSpreener> update_goal(const Transform3D &p_goal);
+	Ref<Transform3DSpreener> set_damping_ratio(real_t p_damping_ratio);
+	Ref<Transform3DSpreener> set_halflife(real_t p_halflife);
 
-  Transform3DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform3D &p_goal, real_t p_damping_ratio, real_t p_halflife);
-  Transform3DSpreener();
+	Transform3DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform3D &p_goal, real_t p_damping_ratio, real_t p_halflife);
+	Transform3DSpreener();
 
 protected:
 	static void _bind_methods();
 
 private:
-  Transform3D goal;
-  Vector3 velocity;
-  Vector3 scale_velocity;
-  Vector3 angular_velocity;
+	Transform3D goal;
+	Vector3 velocity;
+	Vector3 scale_velocity;
+	Vector3 angular_velocity;
 };
 
 #endif // TRANSFORM_3D_SPREENER

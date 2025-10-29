@@ -31,28 +31,27 @@
 #include "spreen.h"
 
 class Transform2DSpreener : public Spreener {
-  GDCLASS(Transform2DSpreener, Spreener);
+	GDCLASS(Transform2DSpreener, Spreener);
 
 public:
-  void start() override;
-  bool step(double &r_delta) override;
-  Ref<Transform2DSpreener> update_goal(const Transform2D &p_goal);
-  Ref<Transform2DSpreener> set_damping_ratio(real_t p_damping_ratio);
-  Ref<Transform2DSpreener> set_halflife(real_t p_halflife);
+	void start() override;
+	bool step(double &r_delta) override;
+	Ref<Transform2DSpreener> update_goal(const Transform2D &p_goal);
+	Ref<Transform2DSpreener> set_damping_ratio(real_t p_damping_ratio);
+	Ref<Transform2DSpreener> set_halflife(real_t p_halflife);
 
-  Transform2DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife);
-  Transform2DSpreener();
+	Transform2DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife);
+	Transform2DSpreener();
 
 protected:
 	static void _bind_methods();
 
 private:
-  Transform2D goal;
-  Vector2 velocity;
-  Vector2 scale_velocity;
-  real_t angular_velocity;
-  real_t skew_velocity;
+	Transform2D goal;
+	Vector2 velocity;
+	Vector2 scale_velocity;
+	real_t angular_velocity;
+	real_t skew_velocity;
 };
-
 
 #endif // TRANSFORM_2D_SPREENER

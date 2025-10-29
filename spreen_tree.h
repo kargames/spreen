@@ -28,39 +28,39 @@
 #ifndef SPREEN_TREE_H
 #define SPREEN_TREE_H
 
+#include "core/object/class_db.h"
 #include "core/object/object.h"
 #include "core/os/thread_safe.h"
-#include "core/object/class_db.h"
 
 class Node;
 class Spreen;
 
 class SpreenTree : public Object {
-  _THREAD_SAFE_CLASS_
-  
-  GDCLASS(SpreenTree, Object);
+	_THREAD_SAFE_CLASS_
+
+	GDCLASS(SpreenTree, Object);
 
 private:
-  static SpreenTree *singleton;
-  bool initialized = false;
-  List<Ref<Spreen>> spreens;
+	static SpreenTree *singleton;
+	bool initialized = false;
+	List<Ref<Spreen>> spreens;
 
-  void _initialize();
+	void _initialize();
 
 protected:
 	static void _bind_methods();
 
 public:
-  void physics_process();
-  void process();
-  void process_spreens(double p_delta, bool p_physics_frame);
+	void physics_process();
+	void process();
+	void process_spreens(double p_delta, bool p_physics_frame);
 
-  Ref<Spreen> create_spreen(const Node *p_node = nullptr);
+	Ref<Spreen> create_spreen(const Node *p_node = nullptr);
 
-  static SpreenTree *get_singleton() { return singleton; }
+	static SpreenTree *get_singleton() { return singleton; }
 
-  SpreenTree();
-  ~SpreenTree();
+	SpreenTree();
+	~SpreenTree();
 };
 
 #endif // SPREEN_TREE_H

@@ -31,24 +31,24 @@
 #include "spreen.h"
 
 class Vector3Spreener : public Spreener {
-  GDCLASS(Vector3Spreener, Spreener);
+	GDCLASS(Vector3Spreener, Spreener);
 
 public:
-  void start() override;
-  bool step(double &r_delta) override;
-  Ref<Vector3Spreener> update_goal(const Vector3 &p_goal);
-  Ref<Vector3Spreener> set_damping_ratio(real_t p_damping_ratio);
-  Ref<Vector3Spreener> set_halflife(real_t p_halflife);
+	void start() override;
+	bool step(double &r_delta) override;
+	Ref<Vector3Spreener> update_goal(const Vector3 &p_goal);
+	Ref<Vector3Spreener> set_damping_ratio(real_t p_damping_ratio);
+	Ref<Vector3Spreener> set_halflife(real_t p_halflife);
 
-  Vector3Spreener(const Object *p_target, const Vector<StringName> &p_property, const Vector3 &p_goal, real_t p_damping_ratio, real_t p_halflife);
-  Vector3Spreener();
+	Vector3Spreener(const Object *p_target, const Vector<StringName> &p_property, const Vector3 &p_goal, real_t p_damping_ratio, real_t p_halflife);
+	Vector3Spreener();
 
 protected:
 	static void _bind_methods();
 
 private:
-  Vector3 goal;
-  Vector3 velocity;
+	Vector3 goal;
+	Vector3 velocity;
 };
 
 #endif // VECTOR3_SPREENER

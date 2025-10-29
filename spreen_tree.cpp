@@ -27,42 +27,47 @@
 
 #include "spreen_tree.h"
 
-#include "spreen.h"
 #include "scene/main/node.h"
 #include "scene/main/scene_tree.h"
+#include "spreen.h"
 
 // Store the singleton
 SpreenTree *SpreenTree::singleton = NULL;
 
 void SpreenTree::_initialize() {
-  Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
-  Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
-  SceneTree::get_singleton()->connect("process_frame", process_callback);
-  SceneTree::get_singleton()->connect("physics_frame", physics_process_callback);
-  initialized = true;
+	SceneTree *scene_tree = SceneTree::get_singleton();
+	if (scene_tree) {
+		Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
+		Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
+		scene_tree->connect("process_frame", process_callback);
+		scene_tree->connect("physics_frame", physics_process_callback);
+		initialized = true;
+	}
 }
 
 void SpreenTree::_bind_methods() {
-  ClassDB::bind_method(D_METHOD("create_spreen", "bound_node"), &SpreenTree::create_spreen);
+	ClassDB::bind_method(D_METHOD("create_spreen", "bound_node"), &SpreenTree::create_spreen);
 }
 
 void SpreenTree::process() {
-  process_spreens(SceneTree::get_singleton()->get_process_time(), false);
+	process_spreens(SceneTree::get_singleton()->get_process_time(), false);
 }
 
 void SpreenTree::physics_process() {
-  process_spreens(SceneTree::get_singleton()->get_physics_process_time(), true);
+	process_spreens(SceneTree::get_singleton()->get_physics_process_time(), true);
 }
 
 void SpreenTree::process_spreens(double p_delta, bool p_physics_frame) {
-  _THREAD_SAFE_METHOD_
+	_THREAD_SAFE_METHOD_
 	// This methods works similarly to how SceneTreeTimers are handled.
 	List<Ref<Spreen>>::Element *L = spreens.back();
 
 	for (List<Ref<Spreen>>::Element *E = spreens.front(); E;) {
 		List<Ref<Spreen>>::Element *N = E->next();
 		// Don't process if paused or process mode doesn't match.
-		if (!E->get()->can_process(SceneTree::get_singleton()->is_paused()) || (p_physics_frame == (E->get()->get_process_mode() == Spreen::SPREEN_PROCESS_IDLE))) {
+		SceneTree *scene_tree = SceneTree::get_singleton();
+		bool is_paused = scene_tree ? scene_tree->is_paused() : false;
+		if (!E->get()->can_process(is_paused) || (p_physics_frame == (E->get()->get_process_mode() == Spreen::SPREEN_PROCESS_IDLE))) {
 			if (E == L) {
 				break;
 			}
@@ -82,30 +87,30 @@ void SpreenTree::process_spreens(double p_delta, bool p_physics_frame) {
 }
 
 Ref<Spreen> SpreenTree::create_spreen(const Node *p_node) {
-  _THREAD_SAFE_METHOD_
+	_THREAD_SAFE_METHOD_
 
-  if (!initialized) {
-    _initialize();
-  }
+	if (!initialized) {
+		_initialize();
+	}
 
-  Ref<Spreen> spreen = memnew(Spreen(true));
-  if (p_node != nullptr) {
-    spreen->bind_node(p_node);
-  }
-  spreens.push_back(spreen);
-  return spreen;
+	Ref<Spreen> spreen = memnew(Spreen(true));
+	if (p_node != nullptr) {
+		spreen->bind_node(p_node);
+	}
+	spreens.push_back(spreen);
+	return spreen;
 }
 
 SpreenTree::SpreenTree() {
-  singleton = this;
+	singleton = this;
 }
 
 SpreenTree::~SpreenTree() {
-  // This was causing issues because I think the SceneTree is already gone
-  // if (initialized) {
-  //   Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
-  //   Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
-  //   SceneTree::get_singleton()->disconnect("process_frame", process_callback);
-  //   SceneTree::get_singleton()->disconnect("process_frame", physics_process_callback);
-  // }
+	// This was causing issues because I think the SceneTree is already gone
+	// if (initialized) {
+	//   Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
+	//   Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
+	//   SceneTree::get_singleton()->disconnect("process_frame", process_callback);
+	//   SceneTree::get_singleton()->disconnect("process_frame", physics_process_callback);
+	// }
 }

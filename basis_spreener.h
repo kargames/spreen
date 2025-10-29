@@ -31,25 +31,25 @@
 #include "spreen.h"
 
 class BasisSpreener : public Spreener {
-  GDCLASS(BasisSpreener, Spreener);
+	GDCLASS(BasisSpreener, Spreener);
 
 public:
-  void start() override;
-  bool step(double &r_delta) override;
-  Ref<BasisSpreener> update_goal(const Basis &p_goal);
-  Ref<BasisSpreener> set_damping_ratio(real_t p_damping_ratio);
-  Ref<BasisSpreener> set_halflife(real_t p_halflife);
+	void start() override;
+	bool step(double &r_delta) override;
+	Ref<BasisSpreener> update_goal(const Basis &p_goal);
+	Ref<BasisSpreener> set_damping_ratio(real_t p_damping_ratio);
+	Ref<BasisSpreener> set_halflife(real_t p_halflife);
 
-  BasisSpreener(const Object *p_target, const Vector<StringName> &p_property, const Basis &p_goal, real_t p_damping_ratio, real_t p_halflife);
-  BasisSpreener();
+	BasisSpreener(const Object *p_target, const Vector<StringName> &p_property, const Basis &p_goal, real_t p_damping_ratio, real_t p_halflife);
+	BasisSpreener();
 
 protected:
 	static void _bind_methods();
 
 private:
-  Basis goal;
-  Vector3 scale_velocity;
-  Vector3 angular_velocity;
+	Basis goal;
+	Vector3 scale_velocity;
+	Vector3 angular_velocity;
 };
 
 #endif // BASIS_SPREENER
