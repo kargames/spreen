@@ -58,7 +58,7 @@ bool FloatSpreener::step(double &r_delta) {
 
 	target_instance->set_indexed(property, x);
 
-	if (Math::is_equal_approx(x, goal) && Math::absf(velocity) < 0.0001) {
+	if (Math::is_equal_approx(x, goal) && Math::abs(velocity) < 0.0001) {
 		_finish();
 		return false;
 	}

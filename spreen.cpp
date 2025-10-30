@@ -155,7 +155,7 @@ void Spreener::update_spring(Quaternion &q, Vector3 &v, const Quaternion &q_goal
 	real_t s = damping_ratio_to_stiffness(damping_ratio, d);
 	real_t y = d / 2.0;
 
-	if (Math::absf(1. - damping_ratio) < CMP_EPSILON) // Critically Damped
+	if (Math::abs(1. - damping_ratio) < CMP_EPSILON) // Critically Damped
 	{
 		Vector3 j0 = x_minus_c;
 		Vector3 j1 = v + j0 * y;
