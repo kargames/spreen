@@ -19,12 +19,27 @@
 			<description>
 			</description>
 		</method>
+		<method name="get_bound_node" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
 		<method name="get_total_elapsed_time" qualifiers="const">
 			<return type="float" />
 			<description>
 			</description>
 		</method>
+		<method name="is_dead" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
 		<method name="is_finishable">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_finished" qualifiers="const">
 			<return type="bool" />
 			<description>
 			</description>
