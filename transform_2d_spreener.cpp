@@ -111,9 +111,6 @@ void Transform2DSpreener::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("update_goal", "goal"), &Transform2DSpreener::update_goal);
 	ClassDB::bind_method(D_METHOD("set_damping_ratio", "damping_ratio"), &Transform2DSpreener::set_damping_ratio);
 	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &Transform2DSpreener::set_halflife);
-
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "damping_ratio", PROPERTY_HINT_RANGE, "0,2.0,or_greater"), "set_damping_ratio", "get_damping_ratio");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "halflife", PROPERTY_HINT_RANGE, "0,2.0,or_greater"), "set_halflife", "get_halflife");
 }
 
 Transform2DSpreener::Transform2DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife) {

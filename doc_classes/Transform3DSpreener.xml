@@ -26,10 +26,4 @@
 			</description>
 		</method>
 	</methods>
-	<members>
-		<member name="damping_ratio" type="float" setter="set_damping_ratio" getter="get_damping_ratio" default="1.0">
-		</member>
-		<member name="halflife" type="float" setter="set_halflife" getter="get_halflife" default="0.5">
-		</member>
-	</members>
 </class>
