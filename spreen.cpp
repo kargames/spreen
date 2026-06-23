@@ -509,8 +509,8 @@ double Spreen::get_total_time() const {
 	return total_time;
 }
 
-String Spreen::to_string() {
-	String ret = Object::to_string();
+String Spreen::_to_string() {
+	String ret = Object::_to_string();
 	Node *node = get_bound_node();
 	if (node) {
 		ret += vformat(" (bound to %s)", node->get_name());

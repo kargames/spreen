@@ -27,6 +27,7 @@
 
 #include "spreen_tree.h"
 
+#include "core/object/callable_mp.h"
 #include "scene/main/node.h"
 #include "scene/main/scene_tree.h"
 #include "spreen.h"

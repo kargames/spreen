@@ -28,7 +28,9 @@
 #ifndef SPREEN_H
 #define SPREEN_H
 
+#include "core/object/class_db.h"
 #include "core/object/ref_counted.h"
+#include "core/variant/type_info.h"
 
 class Spreen;
 class Node;
@@ -159,7 +161,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual String to_string() override;
+	virtual String _to_string() override;
 
 	Ref<FloatSpreener> spreen_float(const Object *p_target, const NodePath &p_property, real_t p_goal, real_t p_damping_ratio, real_t p_halflife);
 	Ref<Vector2Spreener> spreen_vector2(const Object *p_target, const NodePath &p_property, const Vector2 &p_goal, real_t p_damping_ratio, real_t p_halflife);
