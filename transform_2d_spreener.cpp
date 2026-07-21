@@ -38,8 +38,9 @@ void Transform2DSpreener::start() {
 }
 
 bool Transform2DSpreener::step(double &r_delta) {
-	if (finished && _get_spreen()->is_finishable()) {
-		// If other springs haven't stabilizied
+	Ref<Spreen> spreen = _get_spreen();
+	if (finished && (spreen.is_null() || spreen->is_finishable())) {
+		// Finished: wait for the other springs to stabilize, or the owning Spreen is gone.
 		return false;
 	}
 
@@ -98,11 +99,13 @@ Ref<Transform2DSpreener> Transform2DSpreener::update_goal(const Transform2D &p_g
 }
 
 Ref<Transform2DSpreener> Transform2DSpreener::set_damping_ratio(real_t p_damping_ratio) {
+	ERR_FAIL_COND_V_MSG(p_damping_ratio <= 0, this, "Spreener damping_ratio must be greater than 0.");
 	damping_ratio = p_damping_ratio;
 	return this;
 }
 
 Ref<Transform2DSpreener> Transform2DSpreener::set_halflife(real_t p_halflife) {
+	ERR_FAIL_COND_V_MSG(p_halflife <= 0, this, "Spreener halflife must be greater than 0.");
 	halflife = p_halflife;
 	return this;
 }

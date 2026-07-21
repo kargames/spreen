@@ -25,12 +25,12 @@
 //
 //===============================================================================//
 
+#include "spreen.h"
 #include "spreen_tree.h"
 
 #include "core/object/callable_mp.h"
 #include "scene/main/node.h"
 #include "scene/main/scene_tree.h"
-#include "spreen.h"
 
 // Store the singleton
 SpreenTree *SpreenTree::singleton = NULL;
@@ -107,11 +107,11 @@ SpreenTree::SpreenTree() {
 }
 
 SpreenTree::~SpreenTree() {
-	// This was causing issues because I think the SceneTree is already gone
-	// if (initialized) {
-	//   Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
-	//   Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
-	//   SceneTree::get_singleton()->disconnect("process_frame", process_callback);
-	//   SceneTree::get_singleton()->disconnect("process_frame", physics_process_callback);
-	// }
+	SceneTree *scene_tree = SceneTree::get_singleton();
+	if (initialized && scene_tree) {
+		Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
+		Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
+		scene_tree->disconnect("process_frame", process_callback);
+		scene_tree->disconnect("physics_frame", physics_process_callback);
+	}
 }

@@ -39,6 +39,10 @@
 	ERR_FAIL_COND_V_MSG(!valid, nullptr, "Spreen invalid. Either finished or created outside spreen tree."); \
 	ERR_FAIL_COND_V_MSG(started, nullptr, "Can't append to a Spreen that has started. Use stop() first.");
 
+#define CHECK_SPRING_PARAMS(m_damping_ratio, m_halflife)                                                          \
+	ERR_FAIL_COND_V_MSG((m_damping_ratio) <= 0, nullptr, "Spreen damping_ratio must be greater than 0.");         \
+	ERR_FAIL_COND_V_MSG((m_halflife) <= 0, nullptr, "Spreen halflife must be greater than 0.");
+
 real_t Spreener::get_damping_ratio() const {
 	return damping_ratio;
 }
@@ -219,6 +223,7 @@ void Spreen::_stop_internal(bool p_reset) {
 Ref<FloatSpreener> Spreen::spreen_float(const Object *p_target, const NodePath &p_property, real_t p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
+	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
 	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
@@ -239,6 +244,7 @@ Ref<FloatSpreener> Spreen::spreen_float(const Object *p_target, const NodePath &
 Ref<Vector2Spreener> Spreen::spreen_vector2(const Object *p_target, const NodePath &p_property, const Vector2 &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
+	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
 	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
@@ -259,6 +265,7 @@ Ref<Vector2Spreener> Spreen::spreen_vector2(const Object *p_target, const NodePa
 Ref<Transform2DSpreener> Spreen::spreen_transform_2d(const Object *p_target, const NodePath &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
+	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
 	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
@@ -279,6 +286,7 @@ Ref<Transform2DSpreener> Spreen::spreen_transform_2d(const Object *p_target, con
 Ref<Vector3Spreener> Spreen::spreen_vector3(const Object *p_target, const NodePath &p_property, const Vector3 &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
+	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
 	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
@@ -299,6 +307,7 @@ Ref<Vector3Spreener> Spreen::spreen_vector3(const Object *p_target, const NodePa
 Ref<BasisSpreener> Spreen::spreen_basis(const Object *p_target, const NodePath &p_property, const Basis &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
+	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
 	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
@@ -319,6 +328,7 @@ Ref<BasisSpreener> Spreen::spreen_basis(const Object *p_target, const NodePath &
 Ref<Transform3DSpreener> Spreen::spreen_transform_3d(const Object *p_target, const NodePath &p_property, const Transform3D &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	ERR_FAIL_NULL_V(p_target, nullptr);
 	CHECK_VALID();
+	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
 	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
 #ifdef DEBUG_ENABLED
@@ -430,7 +440,7 @@ bool Spreen::custom_step(double p_delta) {
 	bool r = running;
 	running = true;
 	bool ret = step(p_delta);
-	running = running && r; // Running might turn false when Tween finished.
+	running = running && r; // Running might turn false when the Spreen finished.
 	return ret;
 }
 
@@ -456,14 +466,14 @@ bool Spreen::step(double p_delta) {
 
 	if (!started) {
 		if (spreeners.is_empty()) {
-			String tween_id;
+			String spreen_id;
 			Node *node = get_bound_node();
 			if (node) {
-				tween_id = vformat("Spreen (bound to %s)", node->is_inside_tree() ? (String)node->get_path() : (String)node->get_name());
+				spreen_id = vformat("Spreen (bound to %s)", node->is_inside_tree() ? (String)node->get_path() : (String)node->get_name());
 			} else {
-				tween_id = to_string();
+				spreen_id = to_string();
 			}
-			ERR_FAIL_V_MSG(false, tween_id + ": started with no Spreeners.");
+			ERR_FAIL_V_MSG(false, spreen_id + ": started with no Spreeners.");
 		}
 		total_time = 0;
 		_start_spreeners();
@@ -555,7 +565,7 @@ void Spreen::_bind_methods() {
 }
 
 Spreen::Spreen() {
-	ERR_FAIL_MSG("Tween can't be created directly. Use create_tween() method.");
+	ERR_FAIL_MSG("Spreen can't be created directly. Use the SpreenTree.create_spreen() method.");
 }
 
 Spreen::Spreen(bool p_valid) {
