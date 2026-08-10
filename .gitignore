@@ -6,3 +6,25 @@
 
 # Compiled Python
 *.pyc
+
+# SCons
+.sconsign.dblite
+*.os
+
+# Generated doc data (GDExtension build)
+src/gen/
+
+# Built extension binaries
+demo/addons/spreen/bin/
+
+# Godot
+demo/.godot/
+
+# Local Godot build used to run the demo
+Godot.app/
+
+# Fetched by scons for GDExtension builds
+godot-cpp/
+
+# IDE files
+.zed/

@@ -1,5 +1,5 @@
 //===============================================================================//
-// Spreen - vector2_spreener.cpp
+// Spreen - vector3_spreener.cpp
 //===============================================================================//
 // MIT License
 //
@@ -25,9 +25,9 @@
 //
 //===============================================================================//
 
-#include "vector2_spreener.h"
+#include "vector3_spreener.h"
 
-void Vector2Spreener::start() {
+void Vector3Spreener::start() {
 	finished = false;
 
 	Object *target_instance = ObjectDB::get_instance(target);
@@ -37,7 +37,7 @@ void Vector2Spreener::start() {
 	}
 }
 
-bool Vector2Spreener::step(double &r_delta) {
+bool Vector3Spreener::step(double &r_delta) {
 	Ref<Spreen> spreen = _get_spreen();
 	if (finished && (spreen.is_null() || spreen->is_finishable())) {
 		// Finished: wait for the other springs to stabilize, or the owning Spreen is gone.
@@ -52,14 +52,14 @@ bool Vector2Spreener::step(double &r_delta) {
 
 	elapsed_time += r_delta;
 
-	Variant prop_value = target_instance->get_indexed(property);
-	Vector2 p = prop_value.operator Vector2();
+	Variant prop_value = spreen_get_indexed(target_instance, property);
+	Vector3 p = prop_value.operator Vector3();
 
-	update_spring(p, velocity, goal, Vector2(0.0f, 0.0f), r_delta);
+	update_spring(p, velocity, goal, Vector3(0.0f, 0.0f, 0.0f), r_delta);
 
-	target_instance->set_indexed(property, p);
+	spreen_set_indexed(target_instance, property, p);
 
-	if (goal.is_equal_approx(p) && velocity.is_zero_approx()) {
+	if (goal.is_equal_approx(p) && velocity_settled(velocity, goal)) {
 		_finish();
 		return false;
 	}
@@ -67,38 +67,38 @@ bool Vector2Spreener::step(double &r_delta) {
 	return true;
 }
 
-Ref<Vector2Spreener> Vector2Spreener::update_goal(const Vector2 &p_goal) {
+Ref<Vector3Spreener> Vector3Spreener::update_goal(const Vector3 &p_goal) {
 	goal = p_goal;
 	return this;
 }
 
-Ref<Vector2Spreener> Vector2Spreener::set_damping_ratio(real_t p_damping_ratio) {
+Ref<Vector3Spreener> Vector3Spreener::set_damping_ratio(real_t p_damping_ratio) {
 	ERR_FAIL_COND_V_MSG(p_damping_ratio <= 0, this, "Spreener damping_ratio must be greater than 0.");
 	damping_ratio = p_damping_ratio;
 	return this;
 }
 
-Ref<Vector2Spreener> Vector2Spreener::set_halflife(real_t p_halflife) {
+Ref<Vector3Spreener> Vector3Spreener::set_halflife(real_t p_halflife) {
 	ERR_FAIL_COND_V_MSG(p_halflife <= 0, this, "Spreener halflife must be greater than 0.");
 	halflife = p_halflife;
 	return this;
 }
 
-void Vector2Spreener::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("update_goal", "goal"), &Vector2Spreener::update_goal);
-	ClassDB::bind_method(D_METHOD("set_damping_ratio", "damping_ratio"), &Vector2Spreener::set_damping_ratio);
-	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &Vector2Spreener::set_halflife);
+void Vector3Spreener::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("update_goal", "goal"), &Vector3Spreener::update_goal);
+	ClassDB::bind_method(D_METHOD("set_damping_ratio", "damping_ratio"), &Vector3Spreener::set_damping_ratio);
+	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &Vector3Spreener::set_halflife);
 }
 
-Vector2Spreener::Vector2Spreener(const Object *p_target, const Vector<StringName> &p_property, const Vector2 &p_goal, real_t p_damping_ratio, real_t p_halflife) {
+Vector3Spreener::Vector3Spreener(const Object *p_target, const NodePath &p_property, const Vector3 &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	target = p_target->get_instance_id();
 	property = p_property;
 	goal = p_goal;
 	damping_ratio = p_damping_ratio;
 	halflife = p_halflife;
-	velocity = Vector2(0.0f, 0.0f);
+	velocity = Vector3(0.0f, 0.0f, 0.0f);
 }
 
-Vector2Spreener::Vector2Spreener() {
-	ERR_FAIL_MSG("Vector2Spreener can't be created directly. Use the spreen_vector() method in Spreen.");
+Vector3Spreener::Vector3Spreener() {
+	ERR_FAIL_MSG("Vector3Spreener can't be created directly. Use the spreen_vector() method in Spreen.");
 }

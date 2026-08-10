@@ -29,18 +29,17 @@
 
 #include "basis_spreener.h"
 #include "float_spreener.h"
-#include "scene/main/node.h"
 #include "transform_2d_spreener.h"
 #include "transform_3d_spreener.h"
 #include "vector2_spreener.h"
 #include "vector3_spreener.h"
 
-#define CHECK_VALID()                                                                                        \
+#define CHECK_VALID() \
 	ERR_FAIL_COND_V_MSG(!valid, nullptr, "Spreen invalid. Either finished or created outside spreen tree."); \
 	ERR_FAIL_COND_V_MSG(started, nullptr, "Can't append to a Spreen that has started. Use stop() first.");
 
-#define CHECK_SPRING_PARAMS(m_damping_ratio, m_halflife)                                                          \
-	ERR_FAIL_COND_V_MSG((m_damping_ratio) <= 0, nullptr, "Spreen damping_ratio must be greater than 0.");         \
+#define CHECK_SPRING_PARAMS(m_damping_ratio, m_halflife) \
+	ERR_FAIL_COND_V_MSG((m_damping_ratio) <= 0, nullptr, "Spreen damping_ratio must be greater than 0."); \
 	ERR_FAIL_COND_V_MSG((m_halflife) <= 0, nullptr, "Spreen halflife must be greater than 0.");
 
 real_t Spreener::get_damping_ratio() const {
@@ -64,8 +63,13 @@ Ref<Spreen> Spreener::_get_spreen() {
 }
 
 void Spreener::_finish() {
+	Ref<Spreen> spreen = _get_spreen();
+	if (spreen.is_valid() && !spreen->is_finishable()) {
+		return;
+	}
+
 	finished = true;
-	emit_signal(SceneStringName(finished));
+	emit_signal(SPREEN_SNAME_FINISHED);
 }
 
 void Spreener::_bind_methods() {
@@ -225,18 +229,18 @@ Ref<FloatSpreener> Spreen::spreen_float(const Object *p_target, const NodePath &
 	CHECK_VALID();
 	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
-	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	NodePath property_path = p_property.get_as_property_path();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
-	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path, &prop_valid);
 	ERR_FAIL_COND_V_MSG(!prop_valid, nullptr, vformat("The spreened property \"%s\" does not exist in object \"%s\".", p_property, p_target));
 #else
-	const Variant &prop_value = p_target->get_indexed(property_subnames);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path);
 #endif
 
 	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::FLOAT, nullptr, "The spreened property does not match the required type.");
 
-	Ref<FloatSpreener> spreener = memnew(FloatSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	Ref<FloatSpreener> spreener = memnew(FloatSpreener(p_target, property_path, p_goal, p_damping_ratio, p_halflife));
 	append(spreener);
 	return spreener;
 }
@@ -246,18 +250,18 @@ Ref<Vector2Spreener> Spreen::spreen_vector2(const Object *p_target, const NodePa
 	CHECK_VALID();
 	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
-	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	NodePath property_path = p_property.get_as_property_path();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
-	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path, &prop_valid);
 	ERR_FAIL_COND_V_MSG(!prop_valid, nullptr, vformat("The spreened property \"%s\" does not exist in object \"%s\".", p_property, p_target));
 #else
-	const Variant &prop_value = p_target->get_indexed(property_subnames);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path);
 #endif
 
 	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::VECTOR2, nullptr, "The spreened property does not match the required type.");
 
-	Ref<Vector2Spreener> spreener = memnew(Vector2Spreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	Ref<Vector2Spreener> spreener = memnew(Vector2Spreener(p_target, property_path, p_goal, p_damping_ratio, p_halflife));
 	append(spreener);
 	return spreener;
 }
@@ -267,18 +271,18 @@ Ref<Transform2DSpreener> Spreen::spreen_transform_2d(const Object *p_target, con
 	CHECK_VALID();
 	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
-	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	NodePath property_path = p_property.get_as_property_path();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
-	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path, &prop_valid);
 	ERR_FAIL_COND_V_MSG(!prop_valid, nullptr, vformat("The spreened property \"%s\" does not exist in object \"%s\".", p_property, p_target));
 #else
-	const Variant &prop_value = p_target->get_indexed(property_subnames);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path);
 #endif
 
 	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::TRANSFORM2D, nullptr, "The spreened property does not match the required type.");
 
-	Ref<Transform2DSpreener> spreener = memnew(Transform2DSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	Ref<Transform2DSpreener> spreener = memnew(Transform2DSpreener(p_target, property_path, p_goal, p_damping_ratio, p_halflife));
 	append(spreener);
 	return spreener;
 }
@@ -288,18 +292,18 @@ Ref<Vector3Spreener> Spreen::spreen_vector3(const Object *p_target, const NodePa
 	CHECK_VALID();
 	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
-	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	NodePath property_path = p_property.get_as_property_path();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
-	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path, &prop_valid);
 	ERR_FAIL_COND_V_MSG(!prop_valid, nullptr, vformat("The spreened property \"%s\" does not exist in object \"%s\".", p_property, p_target));
 #else
-	const Variant &prop_value = p_target->get_indexed(property_subnames);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path);
 #endif
 
 	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::VECTOR3, nullptr, "The spreened property does not match the required type.");
 
-	Ref<Vector3Spreener> spreener = memnew(Vector3Spreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	Ref<Vector3Spreener> spreener = memnew(Vector3Spreener(p_target, property_path, p_goal, p_damping_ratio, p_halflife));
 	append(spreener);
 	return spreener;
 }
@@ -309,18 +313,18 @@ Ref<BasisSpreener> Spreen::spreen_basis(const Object *p_target, const NodePath &
 	CHECK_VALID();
 	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
-	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	NodePath property_path = p_property.get_as_property_path();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
-	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path, &prop_valid);
 	ERR_FAIL_COND_V_MSG(!prop_valid, nullptr, vformat("The spreened property \"%s\" does not exist in object \"%s\".", p_property, p_target));
 #else
-	const Variant &prop_value = p_target->get_indexed(property_subnames);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path);
 #endif
 
 	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::BASIS, nullptr, "The spreened property does not match the required type.");
 
-	Ref<BasisSpreener> spreener = memnew(BasisSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	Ref<BasisSpreener> spreener = memnew(BasisSpreener(p_target, property_path, p_goal, p_damping_ratio, p_halflife));
 	append(spreener);
 	return spreener;
 }
@@ -330,18 +334,18 @@ Ref<Transform3DSpreener> Spreen::spreen_transform_3d(const Object *p_target, con
 	CHECK_VALID();
 	CHECK_SPRING_PARAMS(p_damping_ratio, p_halflife);
 
-	Vector<StringName> property_subnames = p_property.get_as_property_path().get_subnames();
+	NodePath property_path = p_property.get_as_property_path();
 #ifdef DEBUG_ENABLED
 	bool prop_valid;
-	const Variant &prop_value = p_target->get_indexed(property_subnames, &prop_valid);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path, &prop_valid);
 	ERR_FAIL_COND_V_MSG(!prop_valid, nullptr, vformat("The spreened property \"%s\" does not exist in object \"%s\".", p_property, p_target));
 #else
-	const Variant &prop_value = p_target->get_indexed(property_subnames);
+	const Variant &prop_value = spreen_get_indexed(p_target, property_path);
 #endif
 
 	ERR_FAIL_COND_V_MSG(prop_value.get_type() != Variant::TRANSFORM3D, nullptr, "The spreened property does not match the required type.");
 
-	Ref<Transform3DSpreener> spreener = memnew(Transform3DSpreener(p_target, property_subnames, p_goal, p_damping_ratio, p_halflife));
+	Ref<Transform3DSpreener> spreener = memnew(Transform3DSpreener(p_target, property_path, p_goal, p_damping_ratio, p_halflife));
 	append(spreener);
 	return spreener;
 }
@@ -490,7 +494,7 @@ bool Spreen::step(double p_delta) {
 	if (!still_active && finishable) {
 		running = false;
 		dead = true;
-		emit_signal(SceneStringName(finished));
+		emit_signal(SPREEN_SNAME_FINISHED);
 	}
 
 	return true;
@@ -519,8 +523,8 @@ double Spreen::get_total_time() const {
 	return total_time;
 }
 
-String Spreen::_to_string() {
-	String ret = Object::_to_string();
+SPREEN_TO_STRING_DEF(Spreen) {
+	String ret = vformat("<%s#%d>", get_class(), (uint64_t)get_instance_id());
 	Node *node = get_bound_node();
 	if (node) {
 		ret += vformat(" (bound to %s)", node->get_name());

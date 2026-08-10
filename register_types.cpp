@@ -27,12 +27,18 @@
 
 #include "register_types.h"
 
-#include "core/config/engine.h"
-#include "core/object/class_db.h"
-#include "spreen_tree.h"
-#include "spreen.h"
+#include "compat/compat.h"
+
+#ifdef GDEXTENSION
+#include <gdextension_interface.h>
+#include <godot_cpp/core/defs.hpp>
+#include <godot_cpp/godot.hpp>
+#endif
+
 #include "basis_spreener.h"
 #include "float_spreener.h"
+#include "spreen.h"
+#include "spreen_tree.h"
 #include "transform_2d_spreener.h"
 #include "transform_3d_spreener.h"
 #include "vector2_spreener.h"
@@ -41,27 +47,49 @@
 static SpreenTree *SpreenTreePtr = NULL;
 
 void initialize_spreen_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-        return;
-    }
-    GDREGISTER_CLASS(SpreenTree);
-    GDREGISTER_CLASS(Spreen);
-    GDREGISTER_ABSTRACT_CLASS(Spreener);
-    GDREGISTER_CLASS(FloatSpreener);
-    GDREGISTER_CLASS(Vector2Spreener);
-    GDREGISTER_CLASS(Transform2DSpreener);
-    GDREGISTER_CLASS(Vector3Spreener);
-    GDREGISTER_CLASS(BasisSpreener);
-    GDREGISTER_CLASS(Transform3DSpreener);
+	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+		return;
+	}
+	GDREGISTER_CLASS(SpreenTree);
+	GDREGISTER_CLASS(Spreen);
+	GDREGISTER_ABSTRACT_CLASS(Spreener);
+	GDREGISTER_CLASS(FloatSpreener);
+	GDREGISTER_CLASS(Vector2Spreener);
+	GDREGISTER_CLASS(Transform2DSpreener);
+	GDREGISTER_CLASS(Vector3Spreener);
+	GDREGISTER_CLASS(BasisSpreener);
+	GDREGISTER_CLASS(Transform3DSpreener);
 
-    SpreenTreePtr = memnew(SpreenTree);
-    Engine::get_singleton()->add_singleton(
-            Engine::Singleton("SpreenTree", SpreenTree::get_singleton()));
+	SpreenTreePtr = memnew(SpreenTree);
+#ifdef GDEXTENSION
+	Engine::get_singleton()->register_singleton("SpreenTree", SpreenTree::get_singleton());
+#else
+	Engine::get_singleton()->add_singleton(
+			Engine::Singleton("SpreenTree", SpreenTree::get_singleton()));
+#endif
 }
 
 void uninitialize_spreen_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-        return;
-    }
-    memdelete(SpreenTreePtr);
+	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+		return;
+	}
+#ifdef GDEXTENSION
+	Engine::get_singleton()->unregister_singleton("SpreenTree");
+#endif
+	memdelete(SpreenTreePtr);
 }
+
+#ifdef GDEXTENSION
+extern "C" {
+GDExtensionBool GDE_EXPORT spreen_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
+		GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
+	::godot::GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
+
+	init_obj.register_initializer(initialize_spreen_module);
+	init_obj.register_terminator(uninitialize_spreen_module);
+	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+
+	return init_obj.init();
+}
+}
+#endif

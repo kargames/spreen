@@ -1,5 +1,5 @@
 //===============================================================================//
-// Spreen - vector3_spreener.h
+// Spreen - spreen_tree.h
 //===============================================================================//
 // MIT License
 //
@@ -25,30 +25,39 @@
 //
 //===============================================================================//
 
-#ifndef VECTOR3_SPREENER
-#define VECTOR3_SPREENER
+#ifndef SPREEN_TREE_H
+#define SPREEN_TREE_H
 
-#include "spreen.h"
+#include "compat/compat.h"
 
-class Vector3Spreener : public Spreener {
-	GDCLASS(Vector3Spreener, Spreener);
+class Spreen;
 
-public:
-	void start() override;
-	bool step(double &r_delta) override;
-	Ref<Vector3Spreener> update_goal(const Vector3 &p_goal);
-	Ref<Vector3Spreener> set_damping_ratio(real_t p_damping_ratio);
-	Ref<Vector3Spreener> set_halflife(real_t p_halflife);
+class SpreenTree : public Object {
+	SPREEN_THREAD_SAFE_CLASS
 
-	Vector3Spreener(const Object *p_target, const Vector<StringName> &p_property, const Vector3 &p_goal, real_t p_damping_ratio, real_t p_halflife);
-	Vector3Spreener();
+	GDCLASS(SpreenTree, Object);
+
+private:
+	static SpreenTree *singleton;
+	bool initialized = false;
+	List<Ref<Spreen>> spreens;
+
+	void _initialize();
 
 protected:
 	static void _bind_methods();
 
-private:
-	Vector3 goal;
-	Vector3 velocity;
+public:
+	void physics_process();
+	void process();
+	void process_spreens(double p_delta, bool p_physics_frame);
+
+	Ref<Spreen> create_spreen(const Node *p_node = nullptr);
+
+	static SpreenTree *get_singleton() { return singleton; }
+
+	SpreenTree();
+	~SpreenTree();
 };
 
-#endif // VECTOR3_SPREENER
+#endif // SPREEN_TREE_H

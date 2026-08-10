@@ -1,5 +1,5 @@
 //===============================================================================//
-// Spreen - basis_spreener.cpp
+// Spreen - vector2_spreener.cpp
 //===============================================================================//
 // MIT License
 //
@@ -25,9 +25,9 @@
 //
 //===============================================================================//
 
-#include "basis_spreener.h"
+#include "vector2_spreener.h"
 
-void BasisSpreener::start() {
+void Vector2Spreener::start() {
 	finished = false;
 
 	Object *target_instance = ObjectDB::get_instance(target);
@@ -37,7 +37,7 @@ void BasisSpreener::start() {
 	}
 }
 
-bool BasisSpreener::step(double &r_delta) {
+bool Vector2Spreener::step(double &r_delta) {
 	Ref<Spreen> spreen = _get_spreen();
 	if (finished && (spreen.is_null() || spreen->is_finishable())) {
 		// Finished: wait for the other springs to stabilize, or the owning Spreen is gone.
@@ -52,20 +52,14 @@ bool BasisSpreener::step(double &r_delta) {
 
 	elapsed_time += r_delta;
 
-	Variant prop_value = target_instance->get_indexed(property);
-	Basis basis = prop_value.operator Basis();
+	Variant prop_value = spreen_get_indexed(target_instance, property);
+	Vector2 p = prop_value.operator Vector2();
 
-	Quaternion q = basis.get_rotation_quaternion();
-	update_spring(q, angular_velocity, goal.get_rotation_quaternion(), r_delta);
+	update_spring(p, velocity, goal, Vector2(0.0f, 0.0f), r_delta);
 
-	Vector3 scale = basis.get_scale();
-	update_spring(scale, scale_velocity, goal.get_scale(), Vector3(0.0f, 0.0f, 0.0f), r_delta);
+	spreen_set_indexed(target_instance, property, p);
 
-	basis.set_quaternion_scale(q.normalized(), scale);
-
-	target_instance->set_indexed(property, basis);
-
-	if (goal.is_equal_approx(basis) && angular_velocity.is_zero_approx() && scale_velocity.is_zero_approx()) {
+	if (goal.is_equal_approx(p) && velocity_settled(velocity, goal)) {
 		_finish();
 		return false;
 	}
@@ -73,39 +67,38 @@ bool BasisSpreener::step(double &r_delta) {
 	return true;
 }
 
-Ref<BasisSpreener> BasisSpreener::update_goal(const Basis &p_goal) {
+Ref<Vector2Spreener> Vector2Spreener::update_goal(const Vector2 &p_goal) {
 	goal = p_goal;
 	return this;
 }
 
-Ref<BasisSpreener> BasisSpreener::set_damping_ratio(real_t p_damping_ratio) {
+Ref<Vector2Spreener> Vector2Spreener::set_damping_ratio(real_t p_damping_ratio) {
 	ERR_FAIL_COND_V_MSG(p_damping_ratio <= 0, this, "Spreener damping_ratio must be greater than 0.");
 	damping_ratio = p_damping_ratio;
 	return this;
 }
 
-Ref<BasisSpreener> BasisSpreener::set_halflife(real_t p_halflife) {
+Ref<Vector2Spreener> Vector2Spreener::set_halflife(real_t p_halflife) {
 	ERR_FAIL_COND_V_MSG(p_halflife <= 0, this, "Spreener halflife must be greater than 0.");
 	halflife = p_halflife;
 	return this;
 }
 
-void BasisSpreener::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("update_goal", "goal"), &BasisSpreener::update_goal);
-	ClassDB::bind_method(D_METHOD("set_damping_ratio", "damping_ratio"), &BasisSpreener::set_damping_ratio);
-	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &BasisSpreener::set_halflife);
+void Vector2Spreener::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("update_goal", "goal"), &Vector2Spreener::update_goal);
+	ClassDB::bind_method(D_METHOD("set_damping_ratio", "damping_ratio"), &Vector2Spreener::set_damping_ratio);
+	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &Vector2Spreener::set_halflife);
 }
 
-BasisSpreener::BasisSpreener(const Object *p_target, const Vector<StringName> &p_property, const Basis &p_goal, real_t p_damping_ratio, real_t p_halflife) {
+Vector2Spreener::Vector2Spreener(const Object *p_target, const NodePath &p_property, const Vector2 &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	target = p_target->get_instance_id();
 	property = p_property;
 	goal = p_goal;
 	damping_ratio = p_damping_ratio;
 	halflife = p_halflife;
-	scale_velocity = Vector3(0.0f, 0.0f, 0.0f);
-	angular_velocity = Vector3(0.0f, 0.0f, 0.0f);
+	velocity = Vector2(0.0f, 0.0f);
 }
 
-BasisSpreener::BasisSpreener() {
-	ERR_FAIL_MSG("BasisSpreener can't be created directly. Use the spreen_basis() method in Spreen.");
+Vector2Spreener::Vector2Spreener() {
+	ERR_FAIL_MSG("Vector2Spreener can't be created directly. Use the spreen_vector() method in Spreen.");
 }

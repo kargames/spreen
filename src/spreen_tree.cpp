@@ -28,15 +28,11 @@
 #include "spreen.h"
 #include "spreen_tree.h"
 
-#include "core/object/callable_mp.h"
-#include "scene/main/node.h"
-#include "scene/main/scene_tree.h"
-
 // Store the singleton
 SpreenTree *SpreenTree::singleton = NULL;
 
 void SpreenTree::_initialize() {
-	SceneTree *scene_tree = SceneTree::get_singleton();
+	SceneTree *scene_tree = spreen_get_scene_tree();
 	if (scene_tree) {
 		Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
 		Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
@@ -51,22 +47,30 @@ void SpreenTree::_bind_methods() {
 }
 
 void SpreenTree::process() {
-	process_spreens(SceneTree::get_singleton()->get_process_time(), false);
+	SceneTree *scene_tree = spreen_get_scene_tree();
+	if (!scene_tree) {
+		return;
+	}
+	process_spreens(spreen_process_delta(scene_tree), false);
 }
 
 void SpreenTree::physics_process() {
-	process_spreens(SceneTree::get_singleton()->get_physics_process_time(), true);
+	SceneTree *scene_tree = spreen_get_scene_tree();
+	if (!scene_tree) {
+		return;
+	}
+	process_spreens(spreen_physics_delta(scene_tree), true);
 }
 
 void SpreenTree::process_spreens(double p_delta, bool p_physics_frame) {
-	_THREAD_SAFE_METHOD_
+	SPREEN_THREAD_SAFE_METHOD
 	// This methods works similarly to how SceneTreeTimers are handled.
 	List<Ref<Spreen>>::Element *L = spreens.back();
 
 	for (List<Ref<Spreen>>::Element *E = spreens.front(); E;) {
 		List<Ref<Spreen>>::Element *N = E->next();
 		// Don't process if paused or process mode doesn't match.
-		SceneTree *scene_tree = SceneTree::get_singleton();
+		SceneTree *scene_tree = spreen_get_scene_tree();
 		bool is_paused = scene_tree ? scene_tree->is_paused() : false;
 		if (!E->get()->can_process(is_paused) || (p_physics_frame == (E->get()->get_process_mode() == Spreen::SPREEN_PROCESS_IDLE))) {
 			if (E == L) {
@@ -88,7 +92,7 @@ void SpreenTree::process_spreens(double p_delta, bool p_physics_frame) {
 }
 
 Ref<Spreen> SpreenTree::create_spreen(const Node *p_node) {
-	_THREAD_SAFE_METHOD_
+	SPREEN_THREAD_SAFE_METHOD
 
 	if (!initialized) {
 		_initialize();
@@ -107,7 +111,7 @@ SpreenTree::SpreenTree() {
 }
 
 SpreenTree::~SpreenTree() {
-	SceneTree *scene_tree = SceneTree::get_singleton();
+	SceneTree *scene_tree = spreen_get_scene_tree();
 	if (initialized && scene_tree) {
 		Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
 		Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);

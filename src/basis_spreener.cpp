@@ -1,5 +1,5 @@
 //===============================================================================//
-// Spreen - float_spreener.cpp
+// Spreen - basis_spreener.cpp
 //===============================================================================//
 // MIT License
 //
@@ -25,9 +25,9 @@
 //
 //===============================================================================//
 
-#include "float_spreener.h"
+#include "basis_spreener.h"
 
-void FloatSpreener::start() {
+void BasisSpreener::start() {
 	finished = false;
 
 	Object *target_instance = ObjectDB::get_instance(target);
@@ -37,7 +37,7 @@ void FloatSpreener::start() {
 	}
 }
 
-bool FloatSpreener::step(double &r_delta) {
+bool BasisSpreener::step(double &r_delta) {
 	Ref<Spreen> spreen = _get_spreen();
 	if (finished && (spreen.is_null() || spreen->is_finishable())) {
 		// Finished: wait for the other springs to stabilize, or the owning Spreen is gone.
@@ -52,14 +52,20 @@ bool FloatSpreener::step(double &r_delta) {
 
 	elapsed_time += r_delta;
 
-	Variant prop_value = target_instance->get_indexed(property);
-	real_t x = prop_value.operator real_t();
+	Variant prop_value = spreen_get_indexed(target_instance, property);
+	Basis basis = prop_value.operator Basis();
 
-	update_spring(x, velocity, goal, 0.0f, r_delta);
+	Quaternion q = basis.get_rotation_quaternion();
+	update_spring(q, angular_velocity, goal.get_rotation_quaternion(), r_delta);
 
-	target_instance->set_indexed(property, x);
+	Vector3 scale = basis.get_scale();
+	update_spring(scale, scale_velocity, goal.get_scale(), Vector3(0.0f, 0.0f, 0.0f), r_delta);
 
-	if (Math::is_equal_approx(x, goal) && Math::abs(velocity) < 0.0001) {
+	basis.set_quaternion_scale(q.normalized(), scale);
+
+	spreen_set_indexed(target_instance, property, basis);
+
+	if (goal.is_equal_approx(basis) && velocity_settled(angular_velocity.length(), 1.0f) && velocity_settled(scale_velocity, goal.get_scale())) {
 		_finish();
 		return false;
 	}
@@ -67,38 +73,39 @@ bool FloatSpreener::step(double &r_delta) {
 	return true;
 }
 
-Ref<FloatSpreener> FloatSpreener::update_goal(real_t p_goal) {
+Ref<BasisSpreener> BasisSpreener::update_goal(const Basis &p_goal) {
 	goal = p_goal;
 	return this;
 }
 
-Ref<FloatSpreener> FloatSpreener::set_damping_ratio(real_t p_damping_ratio) {
+Ref<BasisSpreener> BasisSpreener::set_damping_ratio(real_t p_damping_ratio) {
 	ERR_FAIL_COND_V_MSG(p_damping_ratio <= 0, this, "Spreener damping_ratio must be greater than 0.");
 	damping_ratio = p_damping_ratio;
 	return this;
 }
 
-Ref<FloatSpreener> FloatSpreener::set_halflife(real_t p_halflife) {
+Ref<BasisSpreener> BasisSpreener::set_halflife(real_t p_halflife) {
 	ERR_FAIL_COND_V_MSG(p_halflife <= 0, this, "Spreener halflife must be greater than 0.");
 	halflife = p_halflife;
 	return this;
 }
 
-void FloatSpreener::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("update_goal", "goal"), &FloatSpreener::update_goal);
-	ClassDB::bind_method(D_METHOD("set_damping_ratio", "damping_ratio"), &FloatSpreener::set_damping_ratio);
-	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &FloatSpreener::set_halflife);
+void BasisSpreener::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("update_goal", "goal"), &BasisSpreener::update_goal);
+	ClassDB::bind_method(D_METHOD("set_damping_ratio", "damping_ratio"), &BasisSpreener::set_damping_ratio);
+	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &BasisSpreener::set_halflife);
 }
 
-FloatSpreener::FloatSpreener(const Object *p_target, const Vector<StringName> &p_property, real_t p_goal, real_t p_damping_ratio, real_t p_halflife) {
+BasisSpreener::BasisSpreener(const Object *p_target, const NodePath &p_property, const Basis &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	target = p_target->get_instance_id();
 	property = p_property;
 	goal = p_goal;
 	damping_ratio = p_damping_ratio;
 	halflife = p_halflife;
-	velocity = 0.0f;
+	scale_velocity = Vector3(0.0f, 0.0f, 0.0f);
+	angular_velocity = Vector3(0.0f, 0.0f, 0.0f);
 }
 
-FloatSpreener::FloatSpreener() {
-	ERR_FAIL_MSG("FloatSpreener can't be created directly. Use the spreen_float() method in Spreen.");
+BasisSpreener::BasisSpreener() {
+	ERR_FAIL_MSG("BasisSpreener can't be created directly. Use the spreen_basis() method in Spreen.");
 }

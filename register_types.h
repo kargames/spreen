@@ -28,7 +28,12 @@
 #ifndef SPREEN_REGISTER_TYPES_H
 #define SPREEN_REGISTER_TYPES_H
 
+#ifdef GDEXTENSION
+#include <godot_cpp/core/class_db.hpp>
+using namespace godot;
+#else
 #include "modules/register_module_types.h"
+#endif
 
 void initialize_spreen_module(ModuleInitializationLevel p_level);
 

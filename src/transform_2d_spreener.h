@@ -40,7 +40,7 @@ public:
 	Ref<Transform2DSpreener> set_damping_ratio(real_t p_damping_ratio);
 	Ref<Transform2DSpreener> set_halflife(real_t p_halflife);
 
-	Transform2DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife);
+	Transform2DSpreener(const Object *p_target, const NodePath &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife);
 	Transform2DSpreener();
 
 protected:

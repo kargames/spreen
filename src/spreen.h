@@ -28,12 +28,9 @@
 #ifndef SPREEN_H
 #define SPREEN_H
 
-#include "core/object/class_db.h"
-#include "core/object/ref_counted.h"
-#include "core/variant/type_info.h"
+#include "compat/compat.h"
 
 class Spreen;
-class Node;
 
 class Spreener : public RefCounted {
 	GDCLASS(Spreener, RefCounted);
@@ -53,7 +50,7 @@ protected:
 	static void _bind_methods();
 
 	ObjectID target;
-	Vector<StringName> property;
+	NodePath property;
 	real_t damping_ratio = 1.0f;
 	real_t halflife = 0.5f;
 
@@ -76,6 +73,24 @@ protected:
 
 	real_t damping_ratio_to_stiffness(real_t p_ratio, real_t p_damping) {
 		return Math::pow(p_damping / (p_ratio * 2.0), 2.0);
+	}
+
+	/* Scale the velocity by the halftime to normalize the magnitude involved
+	 * so is_equal_approx will not fail in edge cases of finishing */
+	_FORCE_INLINE_ bool velocity_settled(real_t p_velocity, real_t p_scale) const {
+		real_t tolerance = (real_t)CMP_EPSILON * Math::abs(p_scale);
+		if (tolerance < (real_t)CMP_EPSILON) {
+			tolerance = (real_t)CMP_EPSILON;
+		}
+		return Math::abs(p_velocity) * halflife <= tolerance;
+	}
+
+	_FORCE_INLINE_ bool velocity_settled(const Vector2 &p_velocity, const Vector2 &p_scale) const {
+		return velocity_settled(p_velocity.length(), p_scale.length());
+	}
+
+	_FORCE_INLINE_ bool velocity_settled(const Vector3 &p_velocity, const Vector3 &p_scale) const {
+		return velocity_settled(p_velocity.length(), p_scale.length());
 	}
 
 	/* These next functions feel like they could be replaced with existing Godot Quaternion functions but I have had little success so far */
@@ -161,7 +176,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual String _to_string() override;
+	SPREEN_TO_STRING_DECL;
 
 	Ref<FloatSpreener> spreen_float(const Object *p_target, const NodePath &p_property, real_t p_goal, real_t p_damping_ratio, real_t p_halflife);
 	Ref<Vector2Spreener> spreen_vector2(const Object *p_target, const NodePath &p_property, const Vector2 &p_goal, real_t p_damping_ratio, real_t p_halflife);

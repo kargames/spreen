@@ -1,0 +1,19 @@
+[configuration]
+
+entry_symbol = "spreen_library_init"
+compatibility_minimum = "4.3"
+
+[libraries]
+
+macos.debug = "res://addons/spreen/bin/libspreen.macos.template_debug.universal.framework"
+macos.release = "res://addons/spreen/bin/libspreen.macos.template_release.universal.framework"
+windows.debug.x86_32 = "res://addons/spreen/bin/libspreen.windows.template_debug.x86_32.dll"
+windows.release.x86_32 = "res://addons/spreen/bin/libspreen.windows.template_release.x86_32.dll"
+windows.debug.x86_64 = "res://addons/spreen/bin/libspreen.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/spreen/bin/libspreen.windows.template_release.x86_64.dll"
+linux.debug.x86_64 = "res://addons/spreen/bin/libspreen.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://addons/spreen/bin/libspreen.linux.template_release.x86_64.so"
+linux.debug.arm64 = "res://addons/spreen/bin/libspreen.linux.template_debug.arm64.so"
+linux.release.arm64 = "res://addons/spreen/bin/libspreen.linux.template_release.arm64.so"
+android.debug.arm64 = "res://addons/spreen/bin/libspreen.android.template_debug.arm64.so"
+android.release.arm64 = "res://addons/spreen/bin/libspreen.android.template_release.arm64.so"

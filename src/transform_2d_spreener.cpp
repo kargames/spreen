@@ -52,7 +52,7 @@ bool Transform2DSpreener::step(double &r_delta) {
 
 	elapsed_time += r_delta;
 
-	Variant prop_value = target_instance->get_indexed(property);
+	Variant prop_value = spreen_get_indexed(target_instance, property);
 	Transform2D transform = prop_value.operator Transform2D();
 
 	real_t rotation = transform.get_rotation();
@@ -83,9 +83,9 @@ bool Transform2DSpreener::step(double &r_delta) {
 	update_spring(origin, velocity, goal.get_origin(), Vector2(0.0f, 0.0f), r_delta);
 
 	transform = Transform2D(rotation, scale, skew, origin);
-	target_instance->set_indexed(property, transform);
+	spreen_set_indexed(target_instance, property, transform);
 
-	if (goal.is_equal_approx(transform) && Math::is_zero_approx(angular_velocity) && scale_velocity.is_zero_approx() && Math::is_zero_approx(skew_velocity) && velocity.is_zero_approx()) {
+	if (goal.is_equal_approx(transform) && velocity_settled(angular_velocity, 1.0f) && velocity_settled(scale_velocity, goal.get_scale()) && velocity_settled(skew_velocity, 1.0f) && velocity_settled(velocity, goal.get_origin())) {
 		_finish();
 		return false;
 	}
@@ -116,7 +116,7 @@ void Transform2DSpreener::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_halflife", "halflife"), &Transform2DSpreener::set_halflife);
 }
 
-Transform2DSpreener::Transform2DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife) {
+Transform2DSpreener::Transform2DSpreener(const Object *p_target, const NodePath &p_property, const Transform2D &p_goal, real_t p_damping_ratio, real_t p_halflife) {
 	target = p_target->get_instance_id();
 	property = p_property;
 	goal = p_goal;

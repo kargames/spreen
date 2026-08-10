@@ -1,5 +1,5 @@
 //===============================================================================//
-// Spreen - transform_3d_spreener.h
+// Spreen - float_spreener.h
 //===============================================================================//
 // MIT License
 //
@@ -25,32 +25,30 @@
 //
 //===============================================================================//
 
-#ifndef TRANSFORM_3D_SPREENER
-#define TRANSFORM_3D_SPREENER
+#ifndef FLOAT_SPREENER_H
+#define FLOAT_SPREENER_H
 
 #include "spreen.h"
 
-class Transform3DSpreener : public Spreener {
-	GDCLASS(Transform3DSpreener, Spreener);
+class FloatSpreener : public Spreener {
+	GDCLASS(FloatSpreener, Spreener);
 
 public:
 	void start() override;
 	bool step(double &r_delta) override;
-	Ref<Transform3DSpreener> update_goal(const Transform3D &p_goal);
-	Ref<Transform3DSpreener> set_damping_ratio(real_t p_damping_ratio);
-	Ref<Transform3DSpreener> set_halflife(real_t p_halflife);
+	Ref<FloatSpreener> update_goal(const real_t p_goal);
+	Ref<FloatSpreener> set_damping_ratio(real_t p_damping_ratio);
+	Ref<FloatSpreener> set_halflife(real_t p_halflife);
 
-	Transform3DSpreener(const Object *p_target, const Vector<StringName> &p_property, const Transform3D &p_goal, real_t p_damping_ratio, real_t p_halflife);
-	Transform3DSpreener();
+	FloatSpreener(const Object *p_target, const NodePath &p_property, real_t p_goal, real_t p_damping_ratio, real_t p_halflife);
+	FloatSpreener();
 
 protected:
 	static void _bind_methods();
 
 private:
-	Transform3D goal;
-	Vector3 velocity;
-	Vector3 scale_velocity;
-	Vector3 angular_velocity;
+	real_t goal;
+	real_t velocity;
 };
 
-#endif // TRANSFORM_3D_SPREENER
+#endif // FLOAT_SPREENER_H
