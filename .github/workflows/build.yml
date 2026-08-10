@@ -1,0 +1,144 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  API_VERSION: "4.3"
+  NDK_VERSION: r28b
+  NDK_FULL_VERSION: 28.1.13356709
+  EM_VERSION: 4.0.11
+  SCONS_CACHE: ${{ github.workspace }}/.scons-cache
+
+jobs:
+  build:
+    name: ${{ matrix.platform.label }} (${{ matrix.target }})
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [template_debug, template_release]
+        platform:
+          - { label: linux-x86_64, name: linux, arch: x86_64, runner: ubuntu-22.04 }
+          - { label: linux-arm64, name: linux, arch: arm64, runner: ubuntu-22.04-arm }
+          - { label: windows-x86_64, name: windows, arch: x86_64, runner: windows-2022 }
+          - { label: windows-x86_32, name: windows, arch: x86_32, runner: windows-2022 }
+          - { label: macos-universal, name: macos, arch: universal, runner: macos-latest }
+          - { label: android-arm64, name: android, arch: arm64, runner: ubuntu-22.04 }
+          - { label: android-arm32, name: android, arch: arm32, runner: ubuntu-22.04 }
+          - { label: android-x86_64, name: android, arch: x86_64, runner: ubuntu-22.04 }
+          - { label: ios-arm64, name: ios, arch: arm64, runner: macos-latest }
+          - { label: ios-simulator, name: ios, arch: universal, runner: macos-latest, flags: ios_simulator=yes }
+          - { label: web-threads, name: web, arch: wasm32, runner: ubuntu-22.04 }
+          - { label: web-nothreads, name: web, arch: wasm32, runner: ubuntu-22.04, flags: threads=no }
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.x"
+
+      - name: Install SCons
+        run: python -m pip install scons
+
+      - name: Set up Android NDK
+        if: matrix.platform.name == 'android'
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1.6.0
+        with:
+          ndk-version: ${{ env.NDK_VERSION }}
+          link-to-sdk: true
+
+      - name: Set up Emscripten
+        if: matrix.platform.name == 'web'
+        uses: mymindstorm/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 # v16
+        with:
+          version: ${{ env.EM_VERSION }}
+
+      - name: Restore SCons cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.SCONS_CACHE }}
+          key: scons-${{ matrix.platform.label }}-${{ matrix.target }}-${{ github.sha }}
+          restore-keys: |
+            scons-${{ matrix.platform.label }}-${{ matrix.target }}-
+
+      # SConstruct clones godot-cpp itself if it is not already present.
+      - name: Build
+        run: >
+          scons -j4
+          platform=${{ matrix.platform.name }}
+          arch=${{ matrix.platform.arch }}
+          target=${{ matrix.target }}
+          api_version=${{ env.API_VERSION }}
+          ndk_version=${{ env.NDK_FULL_VERSION }}
+          ${{ matrix.platform.flags }}
+
+      - name: Drop MSVC link byproducts
+        if: matrix.platform.name == 'windows'
+        shell: bash
+        run: rm -f demo/addons/spreen/bin/*.lib demo/addons/spreen/bin/*.exp demo/addons/spreen/bin/*.pdb
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: spreen-${{ matrix.platform.label }}-${{ matrix.target }}
+          path: demo/addons/spreen/bin/
+          if-no-files-found: error
+
+  package:
+    name: Package addon
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: spreen-*
+          merge-multiple: true
+          path: addons/spreen/bin
+
+      - name: Assemble addon
+        run: |
+          cp demo/addons/spreen/spreen.gdextension addons/spreen/
+          cp LICENSE addons/spreen/
+          find addons -type f | sort
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: spreen-addon
+          path: addons/
+          if-no-files-found: error
+
+  release:
+    name: Attach to release
+    runs-on: ubuntu-22.04
+    needs: package
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: spreen-addon
+          path: addons/
+
+      - name: Zip and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          zip -r spreen-addon.zip addons
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" spreen-addon.zip --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" --generate-notes spreen-addon.zip
+          fi
