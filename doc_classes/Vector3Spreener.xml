@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Vector3Spreener" inherits="Spreener" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
 	<brief_description>
+		Interpolates an [Object]'s [Vector3] property based on the damping ratio and halflife of a spring.
 	</brief_description>
 	<description>
+		[Vector3Spreener] is used to interpolate a [Vector3] property of an object. See [method Spreen.spreen_vector3].
+		[b]Note:[/b] [method Spreen.spreen_vector3] is the only correct way to create [Vector3Spreener]. Any [Vector3Spreener] created manually will not function correctly.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,18 +14,21 @@
 			<return type="Vector3Spreener" />
 			<param index="0" name="damping_ratio" type="float" />
 			<description>
+				Updates the [Vector3Spreener]'s damping ratio.
 			</description>
 		</method>
 		<method name="set_halflife">
 			<return type="Vector3Spreener" />
 			<param index="0" name="halflife" type="float" />
 			<description>
+				Updates the [Vector3Spreener]'s halflife, in seconds.
 			</description>
 		</method>
 		<method name="update_goal">
 			<return type="Vector3Spreener" />
 			<param index="0" name="goal" type="Vector3" />
 			<description>
+				Updates the goal of the [Vector3Spreener] in real time. When used in tandem with [method Spreen.set_finishable] can be used to dampen noisy inputs.
 			</description>
 		</method>
 	</methods>

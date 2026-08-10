@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Spreen" inherits="RefCounted" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+<class
+	name="Spreen"
+	inherits="RefCounted"
+	api_type="core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../../../doc/class.xsd"
+>
 	<brief_description>
+		A [Tween] like object, but the underlying animations are spring-based, using [Spreener]s.
 	</brief_description>
 	<description>
+		Spreens inherit the benefits of using a [Tween] but the interpolation of values is based on springs, using half-life and dampening ratios rather than durations.
+		A [Spreen] is created by using [method SpreenTree.create_spreen]. [Spreen]s created by using [code]Spreen.new()[/code] will not function.
+		Values are controlled by adding [Spreener]s to the [Spreen] object using [method spreen_basis], [method spreen_float], [method spreen_transform_2d], [method spreen_transform_3d], [method spreen_vector2], and [method spreen_vector3].
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,80 +21,99 @@
 			<return type="Spreen" />
 			<param index="0" name="node" type="Node" />
 			<description>
+				Binds this [Spreen] with the given [param node]. [Spreen]s are processed by a singleton [SpreenTree], so they run independently of the animated nodes. When you bind a [Node] with the [Spreen], the [Spreen] will halt the animation when the object is not inside tree and the [Spreen] will be automatically killed when the bound object is freed. Also [constant SPREEN_PAUSE_BOUND] will make the pausing behavior dependent on the bound node.
 			</description>
 		</method>
 		<method name="custom_step">
 			<return type="bool" />
 			<param index="0" name="delta" type="float" />
 			<description>
+			Processes the [Spreen] by the given [param delta] value, in seconds. This is mostly useful for manual control when the [Spreen] is paused.
+			Returns [code]true[/code] if the [Spreen] still has [Spreener]s that haven't finished.
 			</description>
 		</method>
 		<method name="get_bound_node" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Returns the [Node] the [Spreen] is bound to.
 			</description>
 		</method>
 		<method name="get_total_elapsed_time" qualifiers="const">
 			<return type="float" />
 			<description>
+				Returns the total time in seconds the [Spreen] has been animating (i.e. the time since it started, not counting pauses etc.).
 			</description>
 		</method>
 		<method name="is_dead" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Returns if the [Spreen] is currently dead, because it has finished or is no longer valid.
 			</description>
 		</method>
 		<method name="is_finishable">
 			<return type="bool" />
 			<description>
+				Returns if the [Spreen] will finish and emit a [signal finished] signal, or if it will continue to process forever (useful for controllers).
 			</description>
 		</method>
 		<method name="is_finished" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Returns if all the [Spreener]s have reported finished and have reached their goal.
 			</description>
 		</method>
 		<method name="is_running">
 			<return type="bool" />
 			<description>
+				Returns whether the [Spreen] is currently running, i.e. it wasn't paused and it's not finished.
 			</description>
 		</method>
 		<method name="is_valid">
 			<return type="bool" />
 			<description>
+				Returns whether the [Spreen] is valid. A valid [Spreen] is a [Spreen] contained by the [SpreenTree]. A [Spreen] might become invalid when it has finished tweening, is killed, or when created with [code]Spreen.new()[/code]. Invalid [Spreen]s can't have [Spreener]s appended.
 			</description>
 		</method>
 		<method name="kill">
 			<return type="void" />
 			<description>
+				Aborts all tweening operations and invalidates the [Spreen].
 			</description>
 		</method>
 		<method name="pause">
 			<return type="void" />
 			<description>
+			Pauses the tweening. The animation can be resumed by using [method play].
+			[b]Note:[/b] If a Tween is paused and not bound to any node, it will exist indefinitely until manually started or invalidated.
 			</description>
 		</method>
 		<method name="play">
 			<return type="void" />
 			<description>
+				Resumes a paused or stopped [Spreen].
 			</description>
 		</method>
 		<method name="set_finishable">
 			<return type="Spreen" />
 			<param index="0" name="finishable" type="bool" />
 			<description>
+				Sets the finishable flag on the [Spreen] which allows the [Spreener]s attached to finish, and the [Spreen] will emit a [signal finished] signal when all goals have been met.
 			</description>
 		</method>
 		<method name="set_pause_mode">
 			<return type="Spreen" />
 			<param index="0" name="mode" type="int" enum="Spreen.SpreenPauseMode" />
 			<description>
+			Determines the behavior of the [Spreen] when the [SceneTree] is paused.
+			Default value is [constant SPREEN_PAUSE_BOUND].
 			</description>
 		</method>
 		<method name="set_process_mode">
 			<return type="Spreen" />
 			<param index="0" name="mode" type="int" enum="Spreen.SpreenProcessMode" />
 			<description>
+				Determines whether the [Spreen] should run after process frames (see [method Node._process]) or physics frames (see [method Node._physics_process]).
+				Default value is [constant SPREEN_PROCESS_IDLE].
 			</description>
 		</method>
 		<method name="spreen_basis">
@@ -95,6 +124,9 @@
 			<param index="3" name="damping_ratio" type="float" />
 			<param index="4" name="halflife" type="float" />
 			<description>
+				Creates and appends a [BasisSpreener]. This method tweens a [param property] of an [param object] between the property's value and [param goal] using a spring with [param damping_ratio] and [param halflife], in seconds.
+				[b]Note:[/b] For a critically damped spring, use a damping_ratio of [code]1.0[/code].
+				[b]Note:[/b] For more examples of these values, see [url=https://theorangeduck.com/page/spring-roll-call]the original blog post[/url] this class was inspired by.
 			</description>
 		</method>
 		<method name="spreen_float">
@@ -105,6 +137,9 @@
 			<param index="3" name="damping_ratio" type="float" />
 			<param index="4" name="halflife" type="float" />
 			<description>
+				Creates and appends a [FloatSpreener]. This method tweens a [param property] of an [param object] between the property's value and [param goal] using a spring with [param damping_ratio] and [param halflife], in seconds.
+				[b]Note:[/b] For a critically damped spring, use a damping_ratio of [code]1.0[/code].
+				[b]Note:[/b] For more examples of these values, see [url=https://theorangeduck.com/page/spring-roll-call]the original blog post[/url] this class was inspired by.
 			</description>
 		</method>
 		<method name="spreen_transform_2d">
@@ -115,6 +150,9 @@
 			<param index="3" name="damping_ratio" type="float" />
 			<param index="4" name="halflife" type="float" />
 			<description>
+				Creates and appends a [Transform2DSpreener]. This method tweens a [param property] of an [param object] between the property's value and [param goal] using a spring with [param damping_ratio] and [param halflife], in seconds.
+				[b]Note:[/b] For a critically damped spring, use a damping_ratio of [code]1.0[/code].
+				[b]Note:[/b] For more examples of these values, see [url=https://theorangeduck.com/page/spring-roll-call]the original blog post[/url] this class was inspired by.
 			</description>
 		</method>
 		<method name="spreen_transform_3d">
@@ -125,6 +163,9 @@
 			<param index="3" name="damping_ratio" type="float" />
 			<param index="4" name="halflife" type="float" />
 			<description>
+				Creates and appends a [Transform3DSpreener]. This method tweens a [param property] of an [param object] between the property's value and [param goal] using a spring with [param damping_ratio] and [param halflife], in seconds.
+				[b]Note:[/b] For a critically damped spring, use a damping_ratio of [code]1.0[/code].
+				[b]Note:[/b] For more examples of these values, see [url=https://theorangeduck.com/page/spring-roll-call]the original blog post[/url] this class was inspired by.
 			</description>
 		</method>
 		<method name="spreen_vector2">
@@ -135,6 +176,9 @@
 			<param index="3" name="damping_ratio" type="float" />
 			<param index="4" name="halflife" type="float" />
 			<description>
+				Creates and appends a [Vector2Spreener]. This method tweens a [param property] of an [param object] between the property's value and [param goal] using a spring with [param damping_ratio] and [param halflife], in seconds.
+				[b]Note:[/b] For a critically damped spring, use a damping_ratio of [code]1.0[/code].
+				[b]Note:[/b] For more examples of these values, see [url=https://theorangeduck.com/page/spring-roll-call]the original blog post[/url] this class was inspired by.
 			</description>
 		</method>
 		<method name="spreen_vector3">
@@ -145,30 +189,40 @@
 			<param index="3" name="damping_ratio" type="float" />
 			<param index="4" name="halflife" type="float" />
 			<description>
+				Creates and appends a [Vector3Spreener]. This method tweens a [param property] of an [param object] between the property's value and [param goal] using a spring with [param damping_ratio] and [param halflife], in seconds.
+				[b]Note:[/b] For a critically damped spring, use a damping_ratio of [code]1.0[/code].
+				[b]Note:[/b] For more examples of these values, see [url=https://theorangeduck.com/page/spring-roll-call]the original blog post[/url] this class was inspired by.
 			</description>
 		</method>
 		<method name="stop">
 			<return type="void" />
 			<description>
+				Stops the tweening and resets the [Spreen] to its initial state. This will not remove any appended [Spreener]s.
 			</description>
 		</method>
 	</methods>
 	<signals>
 		<signal name="finished">
 			<description>
+				Emitted when the [Spreen] has finished all tweening. Never emitted when the [Spreen] is not set to finishable (see [method set_finishable]).
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="SPREEN_PROCESS_PHYSICS" value="0" enum="SpreenProcessMode">
+			The [Spreen] updates after each physics frame (see [method Node._physics_process]).
 		</constant>
 		<constant name="SPREEN_PROCESS_IDLE" value="1" enum="SpreenProcessMode">
+			The [Spreen] updates after each process frame (see [method Node._process]).
 		</constant>
 		<constant name="SPREEN_PAUSE_BOUND" value="0" enum="SpreenPauseMode">
+			If the [Spreen] has a bound node, it will process when that node can process (see [member Node.process_mode]). Otherwise it's the same as [constant SPREEN_PAUSE_STOP].
 		</constant>
 		<constant name="SPREEN_PAUSE_STOP" value="1" enum="SpreenPauseMode">
+			If [SceneTree] is paused, the [Spreen] will also pause.
 		</constant>
 		<constant name="SPREEN_PAUSE_PROCESS" value="2" enum="SpreenPauseMode">
+			The [Spreen] will process regardless of whether [SceneTree] is paused.
 		</constant>
 	</constants>
 </class>

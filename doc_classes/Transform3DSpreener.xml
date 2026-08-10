@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Transform3DSpreener" inherits="Spreener" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
 	<brief_description>
+		Interpolates an [Object]'s [Transform3D] property based on the damping ratio and halflife of a spring.
 	</brief_description>
 	<description>
+		[Transform3DSpreener] is used to interpolate a [Transform3D] property of an object. See [method Spreen.spreen_transform_3d].
+		[b]Note:[/b] [method Spreen.spreen_transform_3d] is the only correct way to create [Transform3DSpreener]. Any [Transform3DSpreener] created manually will not function correctly.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,18 +14,21 @@
 			<return type="Transform3DSpreener" />
 			<param index="0" name="damping_ratio" type="float" />
 			<description>
+				Updates the [Transform3DSpreener]'s damping ratio.
 			</description>
 		</method>
 		<method name="set_halflife">
 			<return type="Transform3DSpreener" />
 			<param index="0" name="halflife" type="float" />
 			<description>
+				Updates the [Transform3DSpreener]'s halflife, in seconds.
 			</description>
 		</method>
 		<method name="update_goal">
 			<return type="Transform3DSpreener" />
 			<param index="0" name="goal" type="Transform3D" />
 			<description>
+				Updates the goal of the [Transform3DSpreener] in real time. When used in tandem with [method Spreen.set_finishable] can be used to dampen noisy inputs.
 			</description>
 		</method>
 	</methods>

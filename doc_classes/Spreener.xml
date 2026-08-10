@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Spreener" inherits="RefCounted" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
 	<brief_description>
+		Abstract class for all Spreeners used by [Spreen].
 	</brief_description>
 	<description>
+		Spreeners are objects that perform a specific type of property tween, e.g interpolating a Basis, Vector, Float, etc. A [Spreener] can't be created manually, you need to use a dedicated method from [Spreen].
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,22 +12,26 @@
 		<method name="get_damping_ratio" qualifiers="const">
 			<return type="float" />
 			<description>
+				Returns the damping_ratio of the [Spreener].
 			</description>
 		</method>
 		<method name="get_halflife" qualifiers="const">
 			<return type="float" />
 			<description>
+				Returns the halflife, in seconds, of the [Spreener].
 			</description>
 		</method>
 		<method name="is_finished" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Returns whether the [Spreener] has finished and the value has met the threshold of reaching the goal.
 			</description>
 		</method>
 	</methods>
 	<signals>
 		<signal name="finished">
 			<description>
+				Emitted when the [Spreener] has just finished its job or became invalid (e.g. due to a freed object).
 			</description>
 		</signal>
 	</signals>

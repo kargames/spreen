@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SpreenTree" inherits="Object" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
 	<brief_description>
+		A simple singleton that manages stepping through active [Spreen]s.
 	</brief_description>
 	<description>
+		[SpreenTree] is only necessary as we cannot add processing steps to the [SceneTree] class.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,6 +13,7 @@
 			<return type="Spreen" />
 			<param index="0" name="bound_node" type="Node" />
 			<description>
+				Creates and returns a new [Spreen] processed in this tree. The Spreen will start automatically on the next process frame or physics frame (depending on its [enum Spreen.SpreenProcessMode]).
 			</description>
 		</method>
 	</methods>
