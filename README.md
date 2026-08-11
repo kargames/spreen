@@ -1,6 +1,8 @@
 # Spreen
 
-Spreen provides a Tween-like API for animation and interpolation using springs as a base. Unlike `TRANS_SPRING` in the Tween library, these springs are defined by damping ratios and halflife. 
+![Spring response curves at a fixed halflife, from under-damped through critically damped to over-damped](spreen_screen.png)
+
+Spreen provides a Tween-like API for animation and interpolation using springs as a base. Unlike `TRANS_SPRING` in the Tween library, these springs are defined by damping ratios and halflife.
 
 These help you make fantastic character and camera controllers, reacting to user input in very natural ways.
 
@@ -8,7 +10,7 @@ Spreen builds either as an engine module or as a GDExtension. See [Building](#bu
 
 ## The Basics
 
-1. Install the GDEXtension, build Spreen as a module, or build as a custom GDExtension. See [Building](#building) below. 
+1. Install the GDEXtension, build Spreen as a module, or build as a custom GDExtension. See [Building](#building) below.
 
 2. Create a Spreen object, optionally binding it to a node (in this case, `self`).
 
@@ -44,7 +46,7 @@ Include this repository in your `custom_modules`, then build Godot as usual.
 
 ### As a GDExtension
 
-The official Spreen GDExtension is built using: 
+The official Spreen GDExtension is built using:
 
 ```sh
 scons target=template_debug api_version=4.3
