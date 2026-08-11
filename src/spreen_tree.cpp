@@ -32,7 +32,7 @@
 SpreenTree *SpreenTree::singleton = NULL;
 
 void SpreenTree::_initialize() {
-	SceneTree *scene_tree = spreen_get_scene_tree();
+	SceneTree *scene_tree = SceneTree::get_singleton();
 	if (scene_tree) {
 		Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
 		Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);
@@ -47,7 +47,7 @@ void SpreenTree::_bind_methods() {
 }
 
 void SpreenTree::process() {
-	SceneTree *scene_tree = spreen_get_scene_tree();
+	SceneTree *scene_tree = SceneTree::get_singleton();
 	if (!scene_tree) {
 		return;
 	}
@@ -55,7 +55,7 @@ void SpreenTree::process() {
 }
 
 void SpreenTree::physics_process() {
-	SceneTree *scene_tree = spreen_get_scene_tree();
+	SceneTree *scene_tree = SceneTree::get_singleton();
 	if (!scene_tree) {
 		return;
 	}
@@ -70,7 +70,7 @@ void SpreenTree::process_spreens(double p_delta, bool p_physics_frame) {
 	for (List<Ref<Spreen>>::Element *E = spreens.front(); E;) {
 		List<Ref<Spreen>>::Element *N = E->next();
 		// Don't process if paused or process mode doesn't match.
-		SceneTree *scene_tree = spreen_get_scene_tree();
+		SceneTree *scene_tree = SceneTree::get_singleton();
 		bool is_paused = scene_tree ? scene_tree->is_paused() : false;
 		if (!E->get()->can_process(is_paused) || (p_physics_frame == (E->get()->get_process_mode() == Spreen::SPREEN_PROCESS_IDLE))) {
 			if (E == L) {
@@ -111,7 +111,7 @@ SpreenTree::SpreenTree() {
 }
 
 SpreenTree::~SpreenTree() {
-	SceneTree *scene_tree = spreen_get_scene_tree();
+	SceneTree *scene_tree = SceneTree::get_singleton();
 	if (initialized && scene_tree) {
 		Callable process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::process);
 		Callable physics_process_callback = callable_mp(SpreenTree::singleton, &SpreenTree::physics_process);

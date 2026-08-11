@@ -93,19 +93,6 @@ using namespace godot;
 
 #endif
 
-// SceneTree::get_singleton() is not exposed to GDExtension
-_FORCE_INLINE_ SceneTree *spreen_get_scene_tree() {
-#ifdef GDEXTENSION
-	Engine *engine = Engine::get_singleton();
-	if (!engine) {
-		return nullptr;
-	}
-	return Object::cast_to<SceneTree>(engine->get_main_loop());
-#else
-	return SceneTree::get_singleton();
-#endif
-}
-
 // SceneTree::get_process_time is not exposed to GDExtension
 _FORCE_INLINE_ double spreen_process_delta(SceneTree *p_tree) {
 #ifdef GDEXTENSION
