@@ -1,6 +1,6 @@
 # Spreen
 
-![Spring response curves at a fixed halflife, from under-damped through critically damped to over-damped](spreen_screen.png)
+![Spring response curves at a fixed halflife, from under-damped through critically damped to over-damped](spreen.webp)
 
 Spreen provides a Tween-like API for animation and interpolation using springs as a base. Unlike `TRANS_SPRING` in the Tween library, these springs are defined by damping ratios and halflife.
 
